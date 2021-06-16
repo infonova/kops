@@ -42851,7 +42851,7 @@ data:
         prometheus :9253
         health {{ KubeDNS.NodeLocalDNS.LocalIP }}:{{ NodeLocalDNSHealthCheck }}
     }
-    {{- if KubeDNS.NodeLocalDNS.ForwardToKubeDNS }}
+    {{- if WithDefaultBool KubeDNS.NodeLocalDNS.ForwardToKubeDNS false }}
     .:53 {
         errors
         cache 30
