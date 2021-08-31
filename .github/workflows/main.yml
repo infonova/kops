@@ -1,9 +1,16 @@
----
 name: CI
 
-'on':
-  - push
-  - pull_request
+on:
+  push:
+    tags:
+      - "*"
+    branches:
+      - "master*"
+      - "release*"
+  pull_request:
+    branches:
+      - "master*"
+      - "release*"
 
 env:
   GOPROXY: https://proxy.golang.org
@@ -13,70 +20,134 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+
+      - name: Detect changes
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            src:
+              - '!.github/**'
+
   build-linux-amd64:
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-20.04
     steps:
       - name: Set up go
         uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568
         with:
-          go-version: '1.20.5'
+          go-version: "1.20.5"
 
-      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - name: Checkout full
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          git clone ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} -b ${GITHUB_REF#refs/tags/} ${{ env.GOPATH }}/src/k8s.io/kops
+
+      - name: Checkout shallow
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+        if: startsWith(github.ref, 'refs/tags/') == false
         with:
           path: ${{ env.GOPATH }}/src/k8s.io/kops
 
-      - name: make all examples test
+      - name: Make all examples test
         working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
         run: |
           make all examples test
 
+      - name: Upload Linux binary
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v3
+        with:
+          name: kops-linux-amd64
+          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/linux/amd64/kops
+          if-no-files-found: error
+          retention-days: 1
+
   build-macos-amd64:
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: macos-latest
     steps:
-    - name: Set up go
-      uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568
-      with:
-        go-version: '1.20.5'
+      - name: Set up go
+        uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568
+        with:
+          go-version: "1.20.5"
 
-    - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
-      with:
-        path: ${{ env.GOPATH }}/src/k8s.io/kops
+      - name: Checkout full
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          git clone ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} -b ${GITHUB_REF#refs/tags/} ${{ env.GOPATH }}/src/k8s.io/kops
 
-    - name: make kops examples test
-      working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
-      run: |
-        make kops examples test
+      - name: Checkout shallow
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+        if: startsWith(github.ref, 'refs/tags/') == false
+        with:
+          path: ${{ env.GOPATH }}/src/k8s.io/kops
 
-  build-windows-amd64:
-    runs-on: windows-2019
-    steps:
-    - name: Set up go
-      uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568
-      with:
-        go-version: '1.20.5'
+      - name: Make kops examples test
+        working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
+        run: |
+          make kops examples test
 
-    - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
-      with:
-        path: ${{ env.GOPATH }}/src/k8s.io/kops
-
-    - name: make kops examples test
-      working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
-      run: |
-        make kops examples test-windows
+      - name: Upload macos binary
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v3
+        with:
+          name: kops-darwin-amd64
+          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/darwin/amd64/kops
+          if-no-files-found: error
+          retention-days: 1
 
   verify:
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-20.04
     steps:
       - name: Set up go
         uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568
         with:
-          go-version: '1.20.5'
+          go-version: "1.20.5"
 
-      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - name: Checkout repository
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
         with:
           path: ${{ env.GOPATH }}/src/k8s.io/kops
 
-      - name: make quick-ci
+      - name: Make quick-ci
         working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
         run: |
           make quick-ci
+
+  release:
+    runs-on: ubuntu-20.04
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    needs:
+      - build-linux-amd64
+      - build-macos-amd64
+      - verify
+    steps:
+      - name: Download all kops binary artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Rename kops binary artifacts
+        run: |
+          mv kops-linux-amd64/kops kops-linux-amd64/kops-linux-amd64
+          mv kops-darwin-amd64/kops kops-darwin-amd64/kops-darwin-amd64
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            kops-linux-amd64/kops-linux-amd64
+            kops-darwin-amd64/kops-darwin-amd64
