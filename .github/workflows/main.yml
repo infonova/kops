@@ -11,6 +11,10 @@ on:
     branches:
       - 'master*'
       - 'release*'
+  pull_request_target:
+    branches:
+      - 'master*'
+      - 'release*'
 
 env:
   GOPROXY: https://proxy.golang.org
