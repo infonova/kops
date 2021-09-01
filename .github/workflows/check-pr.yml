@@ -11,6 +11,17 @@ on:
     branches:
       - 'master*'
       - 'release*'
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - labeled
+      - unlabeled
+      - reopened
+      - synchronize
+    branches:
+      - 'master*'
+      - 'release*'
 
 jobs:
   check-pr:
