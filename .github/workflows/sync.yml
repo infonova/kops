@@ -1,0 +1,61 @@
+name: Sync with upstream
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # run daily at 06:00 UTC
+  workflow_dispatch:    # allow manual trigger
+
+jobs:
+  sync-branches:
+    strategy:
+      matrix:
+        fork-suffix: ["bp"]
+        branch: ["master", "release-1.22", "release-1.21", "release-1.20"]
+    name: Sync upstream ${{ matrix.branch }} to ${{ matrix.branch }}-${{ matrix.fork-suffix }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ matrix.branch }}-${{ matrix.fork-suffix }}
+          fetch-depth: 0
+
+      - name: Setup git for syncing the branch
+        run: |
+          echo "Set git user config to current actor"
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+          echo "Add kubernetes/kops as upstream remote"
+          git remote add upstream https://github.com/kubernetes/kops
+          git fetch upstream
+
+      # Note(sprietl): Inspired by https://github.com/dabreadman/sync-upstream-repo
+      - name: Create sync branch
+        run: |
+          echo "Checkout ${{ matrix.branch }}-${{ matrix.fork-suffix }}"
+          git checkout -B sync-${{ matrix.branch }}-${{ matrix.fork-suffix }}
+
+          echo "Merge changes from upstream/${{ matrix.branch }}"
+          git merge upstream/${{ matrix.branch }}
+
+          echo "Push (force) changes to sync-${{ matrix.branch }}-${{ matrix.fork-suffix }}"
+          git push -u origin sync-${{ matrix.branch }}-${{ matrix.fork-suffix }} --force
+
+      - name: Revert git config
+        run: |
+          echo "Unset git user config to current actor"
+          git config --unset user.name
+          git config --unset user.email
+
+          echo "Remove kubernetes/kops as upstream remote"
+          git remote remove upstream
+
+      - name: Create pull request
+        uses: repo-sync/pull-request@v2
+        with:
+          pr_title: Sync from ${{ matrix.branch }} to ${{ matrix.branch }}-${{ matrix.fork-suffix }}
+          pr_body: This pulls the latest changes from ${{ matrix.branch }} into ${{ matrix.branch }}-${{ matrix.fork-suffix }}.
+          source_branch: sync-${{ matrix.branch }}-${{ matrix.fork-suffix }}
+          destination_branch: ${{ matrix.branch }}-${{ matrix.fork-suffix }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
