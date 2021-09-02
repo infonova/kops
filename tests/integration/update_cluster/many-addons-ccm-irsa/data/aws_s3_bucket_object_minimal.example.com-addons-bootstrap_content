@@ -47,12 +47,12 @@ spec:
       k8s-addon: cluster-autoscaler.addons.k8s.io
   - id: k8s-1.16
     manifest: certmanager.io/k8s-1.16.yaml
-    manifestHash: 31dab244744d2d87e0cea88f5c482a3c952f4ced324a32a5b5df9779046ba32e
+    manifestHash: 85a4d2a4e69f6e0c2d3bc23f76c1454a5e90f19f7515d0c4030d9ec9716f217f
     name: certmanager.io
     selector: null
   - id: k8s-1.11
     manifest: node-termination-handler.aws/k8s-1.11.yaml
-    manifestHash: 9330666b0382e3ef54ce357319899e040f7b1477d63d7e4f1f592cb79eb3d395
+    manifestHash: 4197a26e91677e28e68617b12e8b2e9f2825d397578dcd7d8b6500e47a05c4c2
     name: node-termination-handler.aws
     selector:
       k8s-addon: node-termination-handler.aws
