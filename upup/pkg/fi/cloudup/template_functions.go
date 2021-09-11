@@ -128,7 +128,6 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 
 	// will return openstack external ccm image location for current kubernetes version
 	dest["OpenStackCCMTag"] = tf.OpenStackCCMTag
-	dest["AWSCCMTag"] = tf.AWSCCMTag
 	dest["ProxyEnv"] = tf.ProxyEnv
 
 	dest["KopsSystemEnv"] = tf.KopsSystemEnv
@@ -170,6 +169,9 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 			}
 			if c.IPIPMode != "" {
 				return c.IPIPMode
+			}
+			if kops.CloudProviderID(cluster.Spec.CloudProvider) == kops.CloudProviderOpenstack {
+				return "Always"
 			}
 			return "CrossSubnet"
 		}
@@ -353,6 +355,8 @@ func (tf *TemplateFunctions) CloudControllerConfigArgv() ([]string, error) {
 	} else {
 		argv = append(argv, fmt.Sprintf("--use-service-account-credentials=%t", true))
 	}
+
+	argv = append(argv, "--cloud-config=/etc/kubernetes/cloud.config")
 
 	return argv, nil
 }
@@ -652,28 +656,6 @@ func (tf *TemplateFunctions) OpenStackCCMTag() string {
 		}
 	}
 	return tag
-}
-
-// AWSCCMTag returns the correct tag for the cloud controller manager based on
-// the Kubernetes Version
-func (tf *TemplateFunctions) AWSCCMTag() (string, error) {
-	var tag string
-	parsed, err := util.ParseKubernetesVersion(tf.Cluster.Spec.KubernetesVersion)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse Kubernetes version from cluster spec: %q", err)
-	}
-
-	// Update when we have stable releases
-	switch parsed.Minor {
-	case 18:
-		tag = "v1.18.0-alpha.1"
-	case 19:
-		tag = "v1.19.0-alpha.1"
-	default:
-		tag = "latest"
-	}
-
-	return tag, nil
 }
 
 // GetNodeInstanceGroups returns a map containing the defined instance groups of role "Node".
