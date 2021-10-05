@@ -47,7 +47,7 @@ spec:
       k8s-addon: dns-controller.addons.k8s.io
   - id: k8s-1.11
     manifest: metrics-server.addons.k8s.io/k8s-1.11.yaml
-    manifestHash: fb11ac1e25afb1687b3019675ca72e7f4baaceb4faec7424a26b4900d2e0f4bb
+    manifestHash: 9731b5082d21212b47d01fef745c867bb7ae07ba5e67d313ff052c1f2ab41c64
     name: metrics-server.addons.k8s.io
     needsPKI: true
     selector:
@@ -65,7 +65,7 @@ spec:
       k8s-addon: storage-aws.addons.k8s.io
   - id: k8s-1.16
     manifest: networking.cilium.io/k8s-1.16-v1.10.yaml
-    manifestHash: 61385128a1f6969a576cc0111565c3d6d054580a3ae228d901355e47112e1cc2
+    manifestHash: 3308ec4fa8e2ca93d839d9fb1e683be766f066f1764eb010f53b12e2df047a92
     name: networking.cilium.io
     needsRollingUpdate: all
     selector:
