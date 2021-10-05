@@ -149,7 +149,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersdockerexamplecom.Properties.L
       urlAmd64: https://download.docker.com/linux/static/stable/x86_64/docker-20.10.1.tgz
       urlArm64: https://download.docker.com/linux/static/stable/aarch64/docker-20.10.1.tgz
     storage: overlay2,overlay,aufs
-    version: 20.10.8
+    version: 20.10.9
   encryptionConfig: null
   etcdClusters:
     events:
@@ -169,7 +169,6 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersdockerexamplecom.Properties.L
     - NamespaceLifecycle
     - LimitRanger
     - ServiceAccount
-    - PersistentVolumeLabel
     - DefaultStorageClass
     - DefaultTolerationSeconds
     - MutatingAdmissionWebhook
@@ -263,7 +262,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersdockerexamplecom.Properties.L
   ConfigBase: memfs://clusters.example.com/docker.example.com
   InstanceGroupName: master-us-test-1a
   InstanceGroupRole: Master
-  NodeupConfigHash: imk1UXoCCs6yiCc1fQQkdx0kEvXA0OMpylH1JztAa+w=
+  NodeupConfigHash: sWjOwigV1Op8L3/9Ua9YBkILaUUdJ7huisFgdb+xwGo=
 
   __EOF_KUBE_ENV
 
@@ -420,7 +419,7 @@ Resources.AWSEC2LaunchTemplatenodesdockerexamplecom.Properties.LaunchTemplateDat
       urlAmd64: https://download.docker.com/linux/static/stable/x86_64/docker-20.10.1.tgz
       urlArm64: https://download.docker.com/linux/static/stable/aarch64/docker-20.10.1.tgz
     storage: overlay2,overlay,aufs
-    version: 20.10.8
+    version: 20.10.9
   kubeProxy:
     clusterCIDR: 100.96.0.0/11
     cpuRequest: 100m

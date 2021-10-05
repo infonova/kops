@@ -55,6 +55,7 @@ import (
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
 	"k8s.io/kops/upup/pkg/fi/cloudup/gce"
 	"k8s.io/kops/util/pkg/env"
+	"sigs.k8s.io/yaml"
 )
 
 // TemplateFunctions provides a collection of methods used throughout the templates
@@ -70,11 +71,10 @@ type TemplateFunctions struct {
 func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretStore) (err error) {
 	cluster := tf.Cluster
 
-	dest["EtcdScheme"] = tf.EtcdScheme
 	dest["SharedVPC"] = tf.SharedVPC
 	dest["ToJSON"] = tf.ToJSON
+	dest["ToYAML"] = tf.ToYAML
 	dest["UseBootstrapTokens"] = tf.UseBootstrapTokens
-	dest["UseEtcdTLS"] = tf.UseEtcdTLS
 	// Remember that we may be on a different arch from the target.  Hard-code for now.
 	dest["replace"] = func(s, find, replace string) string {
 		return strings.Replace(s, find, replace, -1)
@@ -84,8 +84,11 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 	}
 
 	sprigTxtFuncMap := sprig.TxtFuncMap()
+	dest["nindent"] = sprigTxtFuncMap["nindent"]
 	dest["indent"] = sprigTxtFuncMap["indent"]
 	dest["contains"] = sprigTxtFuncMap["contains"]
+	dest["trimPrefix"] = sprigTxtFuncMap["trimPrefix"]
+	dest["semverCompare"] = sprigTxtFuncMap["semverCompare"]
 
 	dest["ClusterName"] = tf.ClusterName
 	dest["WithDefaultBool"] = func(v *bool, defaultValue bool) bool {
@@ -99,6 +102,7 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 	dest["GetNodeInstanceGroups"] = tf.GetNodeInstanceGroups
 	dest["HasHighlyAvailableControlPlane"] = tf.HasHighlyAvailableControlPlane
 	dest["ControlPlaneControllerReplicas"] = tf.ControlPlaneControllerReplicas
+	dest["APIServerNodeRole"] = tf.APIServerNodeRole
 
 	dest["CloudTags"] = tf.CloudTagsForInstanceGroup
 	dest["KubeDNS"] = func() *kops.KubeDNSConfig {
@@ -265,13 +269,14 @@ func (tf *TemplateFunctions) ToJSON(data interface{}) string {
 	return string(encoded)
 }
 
-// EtcdScheme parses and grabs the protocol to the etcd cluster
-func (tf *TemplateFunctions) EtcdScheme() string {
-	if tf.UseEtcdTLS() {
-		return "https"
+// ToYAML returns a yaml representation of the struct or on error an empty string
+func (tf *TemplateFunctions) ToYAML(data interface{}) string {
+	encoded, err := yaml.Marshal(data)
+	if err != nil {
+		return ""
 	}
 
-	return "http"
+	return string(encoded)
 }
 
 // SharedVPC is a simple helper function which makes the templates for a shared VPC clearer
@@ -295,6 +300,13 @@ func (tf *TemplateFunctions) ControlPlaneControllerReplicas() int {
 		return 2
 	}
 	return 1
+}
+
+func (tf *TemplateFunctions) APIServerNodeRole() string {
+	if featureflag.APIServerNodes.Enabled() {
+		return "node-role.kubernetes.io/api-server"
+	}
+	return "node-role.kubernetes.io/master"
 }
 
 // HasHighlyAvailableControlPlane returns true of the cluster has more than one control plane node. False otherwise.
@@ -544,6 +556,10 @@ func (tf *TemplateFunctions) KopsControllerConfig() (string, error) {
 		default:
 			return "", fmt.Errorf("unsupported cloud provider %s", cluster.Spec.CloudProvider)
 		}
+	}
+
+	if tf.Cluster.Spec.PodCIDRFromCloud {
+		config.EnableCloudIPAM = true
 	}
 
 	// To avoid indentation problems, we marshal as json.  json is a subset of yaml

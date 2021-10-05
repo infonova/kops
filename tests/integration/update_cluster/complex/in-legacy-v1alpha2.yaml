@@ -37,7 +37,7 @@ spec:
       name: a
     name: events
   iam:
-    permissionsBoundary: arn:aws:iam:00000000000:policy/boundaries
+    permissionsBoundary: arn:aws:iam::000000000000:policy/boundaries
   kubeAPIServer:
     serviceNodePortRange: 28000-32767
     auditWebhookBatchThrottleQps: 3.14
@@ -67,6 +67,12 @@ spec:
   sshAccess:
   - 1.1.1.1/32
   sshKeyName: ""
+  target:
+    terraform:
+      providerExtraConfig:
+        max_retries: "10"
+      filesProviderExtraConfig:
+        profile: "foo"
   topology:
     masters: public
     nodes: public

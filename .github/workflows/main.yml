@@ -41,7 +41,7 @@ jobs:
       - name: Set up go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16.7
+          go-version: 1.17.1
 
       - name: Checkout full
         uses: actions/checkout@v2
@@ -78,7 +78,7 @@ jobs:
       - name: Set up go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16.7
+          go-version: 1.17.1
 
       - name: Checkout full
         uses: actions/checkout@v2
@@ -115,7 +115,7 @@ jobs:
       - name: Set up go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16.7
+          go-version: 1.17.1
 
       - name: Checkout full
         uses: actions/checkout@v2
@@ -152,7 +152,7 @@ jobs:
       - name: Set up go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16.7
+          go-version: 1.17.1
 
       - name: Checkout repository
         uses: actions/checkout@v2

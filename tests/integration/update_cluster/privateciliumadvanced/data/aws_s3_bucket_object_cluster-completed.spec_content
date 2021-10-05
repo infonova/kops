@@ -22,40 +22,31 @@ spec:
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   dnsZone: Z1AFAKE1ZON3YO
   docker:
     skipInstall: true
   etcdClusters:
   - backups:
       backupStore: memfs://clusters.example.com/privateciliumadvanced.example.com/backups/etcd/main
-    enableEtcdTLS: true
-    enableTLSAuth: true
     etcdMembers:
     - instanceGroup: master-us-test-1a
       name: us-test-1a
     name: main
-    provider: Manager
     version: 3.4.13
   - backups:
       backupStore: memfs://clusters.example.com/privateciliumadvanced.example.com/backups/etcd/events
-    enableEtcdTLS: true
-    enableTLSAuth: true
     etcdMembers:
     - instanceGroup: master-us-test-1a
       name: us-test-1a
     name: events
-    provider: Manager
     version: 3.4.13
   - backups:
       backupStore: memfs://clusters.example.com/privateciliumadvanced.example.com/backups/etcd/cilium
-    enableEtcdTLS: true
-    enableTLSAuth: true
     etcdMembers:
     - instanceGroup: master-us-test-1a
       name: us-test-1a
     name: cilium
-    provider: Manager
     version: 3.4.13
   externalDns:
     provider: dns-controller
@@ -75,7 +66,6 @@ spec:
     - NamespaceLifecycle
     - LimitRanger
     - ServiceAccount
-    - PersistentVolumeLabel
     - DefaultStorageClass
     - DefaultTolerationSeconds
     - MutatingAdmissionWebhook
@@ -212,7 +202,7 @@ spec:
       sidecarIstioProxyImage: cilium/istio_proxy
       toFqdnsDnsRejectResponseCode: refused
       tunnel: disabled
-      version: v1.10.3
+      version: v1.10.4
   nonMasqueradeCIDR: 100.64.0.0/10
   podCIDR: 100.96.0.0/11
   secretStore: memfs://clusters.example.com/privateciliumadvanced.example.com/secrets

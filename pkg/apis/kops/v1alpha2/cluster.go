@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha2
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -106,6 +107,9 @@ type ClusterSpec struct {
 	ServiceClusterIPRange string `json:"serviceClusterIPRange,omitempty"`
 	// PodCIDR is the CIDR from which we allocate IPs for pods
 	PodCIDR string `json:"podCIDR,omitempty"`
+	// PodCIDRFromCloud determines if the Node's podCIDR should be set by the cloud provider.
+	// This requires ipv6 enabled and that instances can be given full ipv6 prefixes.
+	PodCIDRFromCloud bool `json:"podCIDRFromCloud,omitempty"`
 	//MasterIPRange                 string `json:",omitempty"`
 	// NonMasqueradeCIDR is the CIDR for the internal k8s network (on which pods & services live)
 	// It cannot overlap ServiceClusterIPRange
@@ -206,10 +210,8 @@ type ClusterSpec struct {
 	ClusterAutoscaler *ClusterAutoscalerConfig `json:"clusterAutoscaler,omitempty"`
 	// WarmPool defines the default warm pool settings for instance groups (AWS only).
 	WarmPool *WarmPoolSpec `json:"warmPool,omitempty"`
-
 	// ServiceAccountIssuerDiscovery configures the OIDC Issuer for ServiceAccounts.
 	ServiceAccountIssuerDiscovery *ServiceAccountIssuerDiscoveryConfig `json:"serviceAccountIssuerDiscovery,omitempty"`
-
 	// SnapshotController defines the CSI Snapshot Controller configuration.
 	SnapshotController *SnapshotControllerConfig `json:"snapshotController,omitempty"`
 }
@@ -220,6 +222,8 @@ type ServiceAccountIssuerDiscoveryConfig struct {
 	DiscoveryStore string `json:"discoveryStore,omitempty"`
 	// EnableAWSOIDCProvider will provision an AWS OIDC provider that trusts the ServiceAccount Issuer
 	EnableAWSOIDCProvider bool `json:"enableAWSOIDCProvider,omitempty"`
+	// AdditionalAudiences adds user defined audiences to the provisioned AWS OIDC provider
+	AdditionalAudiences []string `json:"additionalAudiences,omitempty"`
 }
 
 // ServiceAccountExternalPermissions grants a ServiceAccount permissions to external resources.
@@ -471,6 +475,10 @@ type KubeDNSConfig struct {
 	CacheMaxSize int `json:"cacheMaxSize,omitempty"`
 	// CacheMaxConcurrent is the maximum number of concurrent queries for dnsmasq
 	CacheMaxConcurrent int `json:"cacheMaxConcurrent,omitempty"`
+	// Tolerations	are tolerations to apply to the kube-dns deployment
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+	// Affinity is the kube-dns affinity, uses the same syntax as kubectl's affinity
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 	// CoreDNSImage is used to override the default image used for CoreDNS
 	CoreDNSImage string `json:"coreDNSImage,omitempty"`
 	// CPAImage is used to override the default image used for Cluster Proportional Autoscaler
@@ -555,9 +563,9 @@ type EtcdClusterSpec struct {
 	Provider EtcdProviderType `json:"provider,omitempty"`
 	// Members stores the configurations for each member of the cluster (including the data volume)
 	Members []EtcdMemberSpec `json:"etcdMembers,omitempty"`
-	// EnableEtcdTLS indicates the etcd service should use TLS between peers and clients
+	// EnableEtcdTLS is unused.
 	EnableEtcdTLS bool `json:"enableEtcdTLS,omitempty"`
-	// EnableTLSAuth indicates client and peer TLS auth should be enforced
+	// EnableTLSAuth is unused.
 	EnableTLSAuth bool `json:"enableTLSAuth,omitempty"`
 	// Version is the version of etcd to run.
 	Version string `json:"version,omitempty"`
@@ -679,8 +687,10 @@ func (t *TargetSpec) IsEmpty() bool {
 
 // TerraformSpec allows us to specify terraform config in an extensible way
 type TerraformSpec struct {
-	// ProviderExtraConfig contains key/value pairs to add to the rendered terraform "provider" block
+	// ProviderExtraConfig contains key/value pairs to add to the main terraform provider block
 	ProviderExtraConfig *map[string]string `json:"providerExtraConfig,omitempty"`
+	// FilesProviderExtraConfig contains key/value pairs to add to the terraform provider block used for managed files
+	FilesProviderExtraConfig *map[string]string `json:"filesProviderExtraConfig,omitempty"`
 }
 
 func (t *TerraformSpec) IsEmpty() bool {

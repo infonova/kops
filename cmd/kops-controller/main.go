@@ -30,13 +30,13 @@ import (
 	"k8s.io/kops/cmd/kops-controller/controllers"
 	"k8s.io/kops/cmd/kops-controller/pkg/config"
 	"k8s.io/kops/cmd/kops-controller/pkg/server"
+	"k8s.io/kops/pkg/bootstrap"
 	"k8s.io/kops/pkg/nodeidentity"
 	nodeidentityaws "k8s.io/kops/pkg/nodeidentity/aws"
 	nodeidentityazure "k8s.io/kops/pkg/nodeidentity/azure"
 	nodeidentitydo "k8s.io/kops/pkg/nodeidentity/do"
 	nodeidentitygce "k8s.io/kops/pkg/nodeidentity/gce"
 	nodeidentityos "k8s.io/kops/pkg/nodeidentity/openstack"
-	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -86,7 +86,7 @@ func main() {
 
 	ctrl.SetLogger(klogr.New())
 	if opt.Server != nil {
-		var verifier fi.Verifier
+		var verifier bootstrap.Verifier
 		var err error
 		if opt.Server.Provider.AWS != nil {
 			verifier, err = awsup.NewAWSVerifier(opt.Server.Provider.AWS)
@@ -126,10 +126,28 @@ func main() {
 		os.Exit(1)
 	}
 
+	if opt.EnableCloudIPAM {
+		setupLog.Info("enabling IPAM controller")
+		if opt.Cloud != "aws" {
+			klog.Error("IPAM controller only supported by aws")
+			os.Exit(1)
+		}
+		ipamController, err := controllers.NewAWSIPAMReconciler(mgr)
+		if err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "IPAMController")
+			os.Exit(1)
+		}
+		if err := ipamController.SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "IPAMController")
+			os.Exit(1)
+		}
+	}
+
 	if err := addNodeController(mgr, &opt); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NodeController")
 		os.Exit(1)
 	}
+
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")

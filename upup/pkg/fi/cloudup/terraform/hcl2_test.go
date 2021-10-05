@@ -119,18 +119,20 @@ func TestWriteLiteral(t *testing.T) {
 	}{
 		{
 			name:     "string",
-			literal:  &terraformWriter.Literal{Value: "value"},
+			literal:  terraformWriter.LiteralFromStringValue("value"),
 			expected: `foo = "value"`,
 		},
 		{
-			name: "traversal",
-			literal: &terraformWriter.Literal{
-				ResourceType: "type",
-				ResourceName: "name",
-				ResourceProp: "prop",
-			},
+			name:     "traversal",
+			literal:  terraformWriter.LiteralProperty("type", "name", "prop"),
 			expected: "foo = type.name.prop",
 		},
+		{
+			name:     "provider alias",
+			literal:  terraformWriter.LiteralTokens("aws", "files"),
+			expected: "foo = aws.files",
+		},
+
 		{
 			name:     "file",
 			literal:  terraformWriter.LiteralFunctionExpression("file", []string{"\"${path.module}/foo\""}),
@@ -164,9 +166,7 @@ func TestWriteLiteralList(t *testing.T) {
 			name: "one literal",
 			literals: []*terraformWriter.Literal{
 				{
-					ResourceType: "type",
-					ResourceName: "name",
-					ResourceProp: "prop",
+					Tokens: []string{"type", "name", "prop"},
 				},
 			},
 			expected: "foo = [type.name.prop]",
@@ -175,14 +175,10 @@ func TestWriteLiteralList(t *testing.T) {
 			name: "two literals",
 			literals: []*terraformWriter.Literal{
 				{
-					ResourceType: "type1",
-					ResourceName: "name1",
-					ResourceProp: "prop1",
+					Tokens: []string{"type1", "name1", "prop1"},
 				},
 				{
-					ResourceType: "type2",
-					ResourceName: "name2",
-					ResourceProp: "prop2",
+					Tokens: []string{"type2", "name2", "prop2"},
 				},
 			},
 			expected: "foo = [type1.name1.prop1, type2.name2.prop2]",
@@ -191,9 +187,7 @@ func TestWriteLiteralList(t *testing.T) {
 			name: "one traversal literal, one string literal",
 			literals: []*terraformWriter.Literal{
 				{
-					ResourceType: "type",
-					ResourceName: "name",
-					ResourceProp: "prop",
+					Tokens: []string{"type", "name", "prop"},
 				},
 				{
 					Value: "foobar",
@@ -217,6 +211,12 @@ func TestWriteLiteralList(t *testing.T) {
 }
 
 func TestWriteMap(t *testing.T) {
+	literalList := []*terraformWriter.Literal{
+		terraformWriter.LiteralTokens("aws", "files"),
+		terraformWriter.LiteralFromStringValue("foobar"),
+	}
+	literalListType, _ := gocty.ImpliedType(literalList)
+	literalListVal, _ := gocty.ToCtyValue(literalList, literalListType)
 	cases := []struct {
 		name     string
 		values   map[string]cty.Value
@@ -244,6 +244,16 @@ tags = {
 			expected: `
 tags = {
   "key1.k8s.local/foo" = "value1"
+}`,
+		},
+		{
+			name: "literal list",
+			values: map[string]cty.Value{
+				"foo": literalListVal,
+			},
+			expected: `
+tags = {
+  "foo" = [aws.files, "foobar"]
 }`,
 		},
 	}

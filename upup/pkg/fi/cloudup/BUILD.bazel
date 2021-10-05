@@ -55,6 +55,7 @@ go_library(
         "//pkg/templates:go_default_library",
         "//pkg/util/subnet:go_default_library",
         "//pkg/wellknownports:go_default_library",
+        "//pkg/zones:go_default_library",
         "//upup/models:go_default_library",
         "//upup/pkg/fi:go_default_library",
         "//upup/pkg/fi/cloudup/aliup:go_default_library",
@@ -84,6 +85,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
         "//vendor/k8s.io/klog/v2:go_default_library",
+        "//vendor/sigs.k8s.io/yaml:go_default_library",
     ],
 )
 
