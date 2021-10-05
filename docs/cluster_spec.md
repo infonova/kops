@@ -376,10 +376,10 @@ spec:
     auditLogMaxBackups: 1
     auditLogMaxSize: 100
     auditLogPath: /var/log/kube-apiserver-audit.log
-    auditPolicyFile: /srv/kubernetes/audit/policy-config.yaml
+    auditPolicyFile: /srv/kubernetes/kube-apiserver/audit-policy-config.yaml
   fileAssets:
   - name: audit-policy-config
-    path: /srv/kubernetes/audit/policy-config.yaml
+    path: /srv/kubernetes/kube-apiserver/audit-policy-config.yaml
     roles:
     - Master
     content: |
@@ -403,10 +403,10 @@ Webhook backend sends audit events to a remote API, which is assumed to be the s
 spec:
   kubeAPIServer:
     auditWebhookBatchMaxWait: 5s
-    auditWebhookConfigFile: /srv/kubernetes/audit/webhook-config.yaml
+    auditWebhookConfigFile: /srv/kubernetes/kube-apiserver/audit-webhook-config.yaml
   fileAssets:
   - name: audit-webhook-config
-    path: /srv/kubernetes/audit/webhook-config.yaml
+    path: /srv/kubernetes/kube-apiserver/audit-webhook-config.yaml
     roles:
     - Master
     content: |
@@ -569,8 +569,6 @@ spec:
 ## externalDns
 
 This block contains configuration options for your `external-DNS` provider.
-The current external-DNS provider is the kOps `dns-controller`, which can set up DNS records for Kubernetes resources.
-`dns-controller` is scheduled to be phased out and replaced with `external-dns`.
 
 ```yaml
 spec:
@@ -579,6 +577,18 @@ spec:
 ```
 
 Default kOps behavior is false. `watchIngress: true` uses the default _dns-controller_ behavior which is to watch the ingress controller for changes. Set this option at risk of interrupting Service updates in some cases.
+
+The default external-DNS provider is the kOps `dns-controller`.
+
+You can use [external-dns](https://github.com/kubernetes-sigs/external-dns/) as provider instead by adding the following:
+
+```yaml
+spec:
+  externalDns:
+    provider: external-dns
+```
+
+Note that you if you have dns-controller installed, you need to remove this deployment before updating the cluster with the new configuration.
 
 ## kubelet
 

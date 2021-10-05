@@ -159,6 +159,8 @@ type KubeletConfigSpec struct {
 	Taints []string `json:"taints,omitempty" flag:"register-with-taints"`
 	// FeatureGates is set of key=value pairs that describe feature gates for alpha/experimental features.
 	FeatureGates map[string]string `json:"featureGates,omitempty" flag:"feature-gates"`
+	// Integrate with the kernel memcg notification to determine if memory eviction thresholds are crossed rather than polling.
+	KernelMemcgNotification *bool `json:"kernelMemcgNotification,omitempty" flag:"kernel-memcg-notification"`
 	// Resource reservation for kubernetes system daemons like the kubelet, container runtime, node problem detector, etc.
 	KubeReserved map[string]string `json:"kubeReserved,omitempty" flag:"kube-reserved"`
 	// Control group for kube daemons.
@@ -240,7 +242,7 @@ type KubeProxyConfig struct {
 	// LogLevel is the logging level of the proxy
 	LogLevel int32 `json:"logLevel,omitempty" flag:"v"`
 	// ClusterCIDR is the CIDR range of the pods in the cluster
-	ClusterCIDR string `json:"clusterCIDR,omitempty" flag:"cluster-cidr"`
+	ClusterCIDR *string `json:"clusterCIDR,omitempty" flag:"cluster-cidr"`
 	// HostnameOverride, if non-empty, will be used as the identity instead of the actual hostname.
 	HostnameOverride string `json:"hostnameOverride,omitempty" flag:"hostname-override"`
 	// BindAddress is IP address for the proxy server to serve on
