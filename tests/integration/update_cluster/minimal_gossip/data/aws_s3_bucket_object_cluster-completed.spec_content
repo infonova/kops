@@ -20,7 +20,7 @@ spec:
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   docker:
     skipInstall: true
   etcdClusters:
@@ -62,7 +62,6 @@ spec:
     - NamespaceLifecycle
     - LimitRanger
     - ServiceAccount
-    - PersistentVolumeLabel
     - DefaultStorageClass
     - DefaultTolerationSeconds
     - MutatingAdmissionWebhook
@@ -88,8 +87,8 @@ spec:
     requestheaderUsernameHeaders:
     - X-Remote-User
     securePort: 443
-    serviceAccountIssuer: https://kubernetes.default
-    serviceAccountJWKSURI: https://kubernetes.default/openid/v1/jwks
+    serviceAccountIssuer: https://api.internal.minimal.k8s.local
+    serviceAccountJWKSURI: https://api.internal.minimal.k8s.local/openid/v1/jwks
     serviceClusterIPRange: 100.64.0.0/13
     storageBackend: etcd3
   kubeControllerManager:

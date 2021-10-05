@@ -55,6 +55,7 @@ import (
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
 	"k8s.io/kops/upup/pkg/fi/cloudup/gce"
 	"k8s.io/kops/util/pkg/env"
+	"sigs.k8s.io/yaml"
 )
 
 // TemplateFunctions provides a collection of methods used throughout the templates
@@ -73,6 +74,7 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 	dest["EtcdScheme"] = tf.EtcdScheme
 	dest["SharedVPC"] = tf.SharedVPC
 	dest["ToJSON"] = tf.ToJSON
+	dest["ToYAML"] = tf.ToYAML
 	dest["UseBootstrapTokens"] = tf.UseBootstrapTokens
 	dest["UseEtcdTLS"] = tf.UseEtcdTLS
 	// Remember that we may be on a different arch from the target.  Hard-code for now.
@@ -99,6 +101,7 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 	dest["GetNodeInstanceGroups"] = tf.GetNodeInstanceGroups
 	dest["HasHighlyAvailableControlPlane"] = tf.HasHighlyAvailableControlPlane
 	dest["ControlPlaneControllerReplicas"] = tf.ControlPlaneControllerReplicas
+	dest["APIServerNodeRole"] = tf.APIServerNodeRole
 
 	dest["CloudTags"] = tf.CloudTagsForInstanceGroup
 	dest["KubeDNS"] = func() *kops.KubeDNSConfig {
@@ -128,7 +131,6 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 
 	// will return openstack external ccm image location for current kubernetes version
 	dest["OpenStackCCMTag"] = tf.OpenStackCCMTag
-	dest["AWSCCMTag"] = tf.AWSCCMTag
 	dest["ProxyEnv"] = tf.ProxyEnv
 
 	dest["KopsSystemEnv"] = tf.KopsSystemEnv
@@ -266,6 +268,16 @@ func (tf *TemplateFunctions) ToJSON(data interface{}) string {
 	return string(encoded)
 }
 
+// ToYAML returns a yaml representation of the struct or on error an empty string
+func (tf *TemplateFunctions) ToYAML(data interface{}) string {
+	encoded, err := yaml.Marshal(data)
+	if err != nil {
+		return ""
+	}
+
+	return string(encoded)
+}
+
 // EtcdScheme parses and grabs the protocol to the etcd cluster
 func (tf *TemplateFunctions) EtcdScheme() string {
 	if tf.UseEtcdTLS() {
@@ -296,6 +308,13 @@ func (tf *TemplateFunctions) ControlPlaneControllerReplicas() int {
 		return 2
 	}
 	return 1
+}
+
+func (tf *TemplateFunctions) APIServerNodeRole() string {
+	if featureflag.APIServerNodes.Enabled() {
+		return "node-role.kubernetes.io/api-server"
+	}
+	return "node-role.kubernetes.io/master"
 }
 
 // HasHighlyAvailableControlPlane returns true of the cluster has more than one control plane node. False otherwise.
@@ -356,6 +375,8 @@ func (tf *TemplateFunctions) CloudControllerConfigArgv() ([]string, error) {
 	} else {
 		argv = append(argv, fmt.Sprintf("--use-service-account-credentials=%t", true))
 	}
+
+	argv = append(argv, "--cloud-config=/etc/kubernetes/cloud.config")
 
 	return argv, nil
 }
@@ -655,28 +676,6 @@ func (tf *TemplateFunctions) OpenStackCCMTag() string {
 		}
 	}
 	return tag
-}
-
-// AWSCCMTag returns the correct tag for the cloud controller manager based on
-// the Kubernetes Version
-func (tf *TemplateFunctions) AWSCCMTag() (string, error) {
-	var tag string
-	parsed, err := util.ParseKubernetesVersion(tf.Cluster.Spec.KubernetesVersion)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse Kubernetes version from cluster spec: %q", err)
-	}
-
-	// Update when we have stable releases
-	switch parsed.Minor {
-	case 18:
-		tag = "v1.18.0-alpha.1"
-	case 19:
-		tag = "v1.19.0-alpha.1"
-	default:
-		tag = "latest"
-	}
-
-	return tag, nil
 }
 
 // GetNodeInstanceGroups returns a map containing the defined instance groups of role "Node".

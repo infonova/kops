@@ -47,7 +47,7 @@ func (b *ContainerdOptionsBuilder) BuildOptions(o interface{}) error {
 		// Set version based on Kubernetes version
 		if fi.StringValue(containerd.Version) == "" {
 			if b.IsKubernetesGTE("1.19") {
-				containerd.Version = fi.String("1.4.9")
+				containerd.Version = fi.String("1.4.11")
 			} else {
 				containerd.Version = fi.String("1.3.10")
 			}
@@ -81,6 +81,10 @@ func (b *ContainerdOptionsBuilder) BuildOptions(o interface{}) error {
 	} else {
 		// Unknown container runtime, should not install containerd
 		containerd.SkipInstall = true
+	}
+
+	if containerd.NvidiaGPU != nil && fi.BoolValue(containerd.NvidiaGPU.Enabled) && containerd.NvidiaGPU.DriverPackage == "" {
+		containerd.NvidiaGPU.DriverPackage = "nvidia-headless-460-server"
 	}
 
 	return nil

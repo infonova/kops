@@ -23,12 +23,14 @@ spec:
       - key: node.cloudprovider.kubernetes.io/uninitialized
         value: "true"
         effect: NoSchedule
+      - key: node.kubernetes.io/not-ready
+        effect: NoSchedule
       - key: node-role.kubernetes.io/master
         effect: NoSchedule
       serviceAccountName: aws-cloud-controller-manager
       containers:
       - name: aws-cloud-controller-manager
-        image: {{ if .ExternalCloudControllerManager.Image }}{{ .ExternalCloudControllerManager.Image }}{{ else }}gcr.io/k8s-staging-provider-aws/cloud-controller-manager:{{AWSCCMTag}}{{ end }}
+        image: {{ .ExternalCloudControllerManager.Image }}
         imagePullPolicy: IfNotPresent
         args:
 {{- range $arg := CloudControllerConfigArgv }}
@@ -40,8 +42,17 @@ spec:
         resources:
           requests:
             cpu: 200m
+        volumeMounts:
+        - mountPath: /etc/kubernetes/cloud.config
+          name: cloudconfig
+          readOnly: true
       hostNetwork: true
       priorityClassName: system-cluster-critical
+      volumes:
+      - hostPath:
+          path: /etc/kubernetes/cloud.config
+          type: ""
+        name: cloudconfig
 ---
 apiVersion: v1
 kind: ServiceAccount
