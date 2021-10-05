@@ -126,12 +126,12 @@ cat > conf/cluster_spec.yaml << '__EOF_CLUSTER_SPEC'
 cloudConfig:
   awsEBSCSIDriver:
     enabled: true
-    version: v1.2.0
+    version: v1.2.1
   manageStorageClasses: true
 containerRuntime: containerd
 containerd:
   logLevel: info
-  version: 1.4.9
+  version: 1.4.11
 docker:
   skipInstall: true
 kubeProxy:
@@ -165,7 +165,7 @@ CloudProvider: aws
 ConfigBase: memfs://clusters.example.com/minimal.example.com
 InstanceGroupName: nodes
 InstanceGroupRole: Node
-NodeupConfigHash: x3cTBQN93H1WAQq1loIYTbledqF/S7D6A8d/RntNsYM=
+NodeupConfigHash: laCXiHzBV9h/4Xn1edzCtgMhQKdzqzMaOaDA7/u2ZnU=
 
 __EOF_KUBE_ENV
 

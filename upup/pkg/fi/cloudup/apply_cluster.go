@@ -701,7 +701,15 @@ func (c *ApplyClusterCmd) Run(ctx context.Context) error {
 	case TargetTerraform:
 		checkExisting = false
 		outDir := c.OutDir
-		tf := terraform.NewTerraformTarget(cloud, project, outDir, cluster.Spec.Target)
+		var vfsProvider *vfs.TerraformProvider
+		if tfPath, ok := configBase.(vfs.TerraformPath); ok && featureflag.TerraformManagedFiles.Enabled() {
+			var err error
+			vfsProvider, err = tfPath.TerraformProvider()
+			if err != nil {
+				return err
+			}
+		}
+		tf := terraform.NewTerraformTarget(cloud, project, vfsProvider, outDir, cluster.Spec.Target)
 
 		// We include a few "util" variables in the TF output
 		if err := tf.AddOutputVariable("region", terraformWriter.LiteralFromStringValue(cloud.Region())); err != nil {
@@ -1427,6 +1435,10 @@ func (n *nodeUpConfigBuilder) BuildConfig(ig *kops.InstanceGroup, apiserverAddit
 
 	if cluster.Spec.ContainerRuntime == "containerd" {
 		config.ContainerdConfig = cluster.Spec.Containerd
+	}
+
+	if cluster.Spec.Containerd.NvidiaGPU != nil {
+		config.NvidiaGPU = cluster.Spec.Containerd.NvidiaGPU
 	}
 
 	if ig.Spec.WarmPool != nil || cluster.Spec.WarmPool != nil {

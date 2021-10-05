@@ -105,6 +105,11 @@ func (b *BootstrapChannelBuilder) Build(c *fi.ModelBuilderContext) error {
 	}
 
 	for _, a := range addons.Spec.Addons {
+		// Older versions of channels that may be running on the upgrading cluster requires Version to be set
+		// We hardcode version to a high version to ensure an update is triggered on first run, and from then on
+		// only a hash change will trigger an addon update.
+		a.Version = "9.99.0"
+
 		key := *a.Name
 		if a.Id != "" {
 			key = key + "-" + a.Id
@@ -581,6 +586,25 @@ func (b *BootstrapChannelBuilder) buildAddons(c *fi.ModelBuilderContext) (*chann
 		{
 			location := key + "/k8s-1.17.yaml"
 			id := "k8s-1.17"
+
+			addons.Spec.Addons = append(addons.Spec.Addons, &channelsapi.AddonSpec{
+				Name:     fi.String(key),
+				Selector: map[string]string{"k8s-addon": key},
+				Manifest: fi.String(location),
+				Id:       id,
+			})
+		}
+	}
+
+	nvidia := b.Cluster.Spec.Containerd.NvidiaGPU
+
+	if nvidia != nil && fi.BoolValue(nvidia.Enabled) {
+
+		key := "nvidia.addons.k8s.io"
+
+		{
+			location := key + "/k8s-1.16.yaml"
+			id := "k8s-1.16"
 
 			addons.Spec.Addons = append(addons.Spec.Addons, &channelsapi.AddonSpec{
 				Name:     fi.String(key),

@@ -1728,6 +1728,7 @@
                 "ec2:CreateSecurityGroup",
                 "ec2:CreateTags",
                 "ec2:DescribeAccountAttributes",
+                "ec2:DescribeInstanceTypes",
                 "ec2:DescribeInstances",
                 "ec2:DescribeRegions",
                 "ec2:DescribeRouteTables",
@@ -1852,6 +1853,7 @@
             {
               "Action": [
                 "autoscaling:DescribeAutoScalingInstances",
+                "ec2:DescribeInstanceTypes",
                 "ec2:DescribeInstances",
                 "iam:GetServerCertificate",
                 "iam:ListServerCertificates",
@@ -1881,7 +1883,7 @@
           ],
           "Version": "2012-10-17"
         },
-        "PermissionsBoundary": "arn:aws:iam:00000000000:policy/boundaries",
+        "PermissionsBoundary": "arn:aws:iam::000000000000:policy/boundaries",
         "Tags": [
           {
             "Key": "KubernetesCluster",
@@ -1922,7 +1924,7 @@
           ],
           "Version": "2012-10-17"
         },
-        "PermissionsBoundary": "arn:aws:iam:00000000000:policy/boundaries",
+        "PermissionsBoundary": "arn:aws:iam::000000000000:policy/boundaries",
         "Tags": [
           {
             "Key": "KubernetesCluster",

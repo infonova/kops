@@ -131,7 +131,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersmixedinstancesexamplecom.Prop
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   docker:
     skipInstall: true
   encryptionConfig: null
@@ -153,7 +153,6 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersmixedinstancesexamplecom.Prop
     - NamespaceLifecycle
     - LimitRanger
     - ServiceAccount
-    - PersistentVolumeLabel
     - DefaultStorageClass
     - DefaultTolerationSeconds
     - MutatingAdmissionWebhook
@@ -245,7 +244,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersmixedinstancesexamplecom.Prop
   ConfigBase: memfs://clusters.example.com/mixedinstances.example.com
   InstanceGroupName: master-us-test-1a
   InstanceGroupRole: Master
-  NodeupConfigHash: W4BBaOdm17QHqEE3z0mdDgdi2E12+ijfjv+tcfyXFyk=
+  NodeupConfigHash: hxf5G/LXQJjRYK/aHuhZx/QT4r1OSQDiOlegR1Iudr8=
 
   __EOF_KUBE_ENV
 
@@ -384,7 +383,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1bmastersmixedinstancesexamplecom.Prop
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   docker:
     skipInstall: true
   encryptionConfig: null
@@ -406,7 +405,6 @@ Resources.AWSEC2LaunchTemplatemasterustest1bmastersmixedinstancesexamplecom.Prop
     - NamespaceLifecycle
     - LimitRanger
     - ServiceAccount
-    - PersistentVolumeLabel
     - DefaultStorageClass
     - DefaultTolerationSeconds
     - MutatingAdmissionWebhook
@@ -498,7 +496,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1bmastersmixedinstancesexamplecom.Prop
   ConfigBase: memfs://clusters.example.com/mixedinstances.example.com
   InstanceGroupName: master-us-test-1b
   InstanceGroupRole: Master
-  NodeupConfigHash: W4BBaOdm17QHqEE3z0mdDgdi2E12+ijfjv+tcfyXFyk=
+  NodeupConfigHash: hxf5G/LXQJjRYK/aHuhZx/QT4r1OSQDiOlegR1Iudr8=
 
   __EOF_KUBE_ENV
 
@@ -637,7 +635,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1cmastersmixedinstancesexamplecom.Prop
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   docker:
     skipInstall: true
   encryptionConfig: null
@@ -659,7 +657,6 @@ Resources.AWSEC2LaunchTemplatemasterustest1cmastersmixedinstancesexamplecom.Prop
     - NamespaceLifecycle
     - LimitRanger
     - ServiceAccount
-    - PersistentVolumeLabel
     - DefaultStorageClass
     - DefaultTolerationSeconds
     - MutatingAdmissionWebhook
@@ -751,7 +748,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1cmastersmixedinstancesexamplecom.Prop
   ConfigBase: memfs://clusters.example.com/mixedinstances.example.com
   InstanceGroupName: master-us-test-1c
   InstanceGroupRole: Master
-  NodeupConfigHash: W4BBaOdm17QHqEE3z0mdDgdi2E12+ijfjv+tcfyXFyk=
+  NodeupConfigHash: hxf5G/LXQJjRYK/aHuhZx/QT4r1OSQDiOlegR1Iudr8=
 
   __EOF_KUBE_ENV
 
@@ -890,7 +887,7 @@ Resources.AWSEC2LaunchTemplatenodesmixedinstancesexamplecom.Properties.LaunchTem
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   docker:
     skipInstall: true
   kubeProxy:
@@ -922,7 +919,7 @@ Resources.AWSEC2LaunchTemplatenodesmixedinstancesexamplecom.Properties.LaunchTem
   ConfigBase: memfs://clusters.example.com/mixedinstances.example.com
   InstanceGroupName: nodes
   InstanceGroupRole: Node
-  NodeupConfigHash: Yb81j5qaD65NaRI46dqk5mObtL+iKxJU1ffggd24Wkw=
+  NodeupConfigHash: YJjwrXr25ylLc8/Ak8yX6xCLkYTWqHj6BF3e0ueMP9o=
 
   __EOF_KUBE_ENV
 

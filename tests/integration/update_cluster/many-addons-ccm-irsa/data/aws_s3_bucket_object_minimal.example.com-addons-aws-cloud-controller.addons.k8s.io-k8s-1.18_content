@@ -22,7 +22,12 @@ spec:
       - args:
         - --v=2
         - --cloud-provider=aws
+        - --cluster-name=minimal.example.com
+        - --cluster-cidr=172.20.0.0/16
+        - --allocate-node-cidrs=true
+        - --configure-cloud-routes=false
         - --use-service-account-credentials=true
+        - --cloud-config=/etc/kubernetes/cloud.config
         env:
         - name: KUBERNETES_SERVICE_HOST
           value: 127.0.0.1
@@ -30,13 +35,16 @@ spec:
           value: arn:aws-test:iam::123456789012:role/aws-cloud-controller-manager.kube-system.sa.minimal.example.com
         - name: AWS_WEB_IDENTITY_TOKEN_FILE
           value: /var/run/secrets/amazonaws.com/token
-        image: gcr.io/k8s-staging-provider-aws/cloud-controller-manager:latest
+        image: k8s.gcr.io/provider-aws/cloud-controller-manager:v1.21.0-alpha.0
         imagePullPolicy: IfNotPresent
         name: aws-cloud-controller-manager
         resources:
           requests:
             cpu: 200m
         volumeMounts:
+        - mountPath: /etc/kubernetes/cloud.config
+          name: cloudconfig
+          readOnly: true
         - mountPath: /var/run/secrets/amazonaws.com/
           name: token-amazonaws-com
           readOnly: true
@@ -52,8 +60,14 @@ spec:
         key: node.cloudprovider.kubernetes.io/uninitialized
         value: "true"
       - effect: NoSchedule
+        key: node.kubernetes.io/not-ready
+      - effect: NoSchedule
         key: node-role.kubernetes.io/master
       volumes:
+      - hostPath:
+          path: /etc/kubernetes/cloud.config
+          type: ""
+        name: cloudconfig
       - name: token-amazonaws-com
         projected:
           defaultMode: 420

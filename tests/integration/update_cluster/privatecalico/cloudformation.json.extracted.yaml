@@ -132,7 +132,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersprivatecalicoexamplecom.Prope
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   docker:
     skipInstall: true
   encryptionConfig: null
@@ -154,7 +154,6 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersprivatecalicoexamplecom.Prope
     - NamespaceLifecycle
     - LimitRanger
     - ServiceAccount
-    - PersistentVolumeLabel
     - DefaultStorageClass
     - DefaultTolerationSeconds
     - MutatingAdmissionWebhook
@@ -246,7 +245,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersprivatecalicoexamplecom.Prope
   ConfigBase: memfs://clusters.example.com/privatecalico.example.com
   InstanceGroupName: master-us-test-1a
   InstanceGroupRole: Master
-  NodeupConfigHash: xsyLB/5s9LvDrreBvPJiHjVa6r3MOTaiAPNIopoE9IM=
+  NodeupConfigHash: 7jON/Pgsj+aWeaZkIVoXYS8hDPxMtkv7zd9Ormliqm4=
 
   __EOF_KUBE_ENV
 
@@ -385,7 +384,7 @@ Resources.AWSEC2LaunchTemplatenodesprivatecalicoexamplecom.Properties.LaunchTemp
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   docker:
     skipInstall: true
   kubeProxy:
@@ -417,7 +416,7 @@ Resources.AWSEC2LaunchTemplatenodesprivatecalicoexamplecom.Properties.LaunchTemp
   ConfigBase: memfs://clusters.example.com/privatecalico.example.com
   InstanceGroupName: nodes
   InstanceGroupRole: Node
-  NodeupConfigHash: KOpmJIvHVY9CG+9DEKaTFteI+iyJBsT/RKfODKEMXSk=
+  NodeupConfigHash: QwQ9IUT+PLG/OgM+M0cko/riVhksXrMgCfPTvRpT0/o=
 
   __EOF_KUBE_ENV
 

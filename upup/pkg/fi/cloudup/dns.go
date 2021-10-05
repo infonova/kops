@@ -186,35 +186,47 @@ func precreateDNS(ctx context.Context, cluster *kops.Cluster, cloud fi.Cloud) er
 
 	for _, dnsHostname := range dnsHostnames {
 		dnsHostname = dns.EnsureDotSuffix(dnsHostname)
-		found := false
-		dnsRecord := recordsMap["A::"+dnsHostname]
-		if dnsRecord != nil {
-			rrdatas := dnsRecord.Rrdatas()
-			if len(rrdatas) > 0 {
-				klog.V(4).Infof("Found DNS record %s => %s; won't create", dnsHostname, rrdatas)
-				found = true
-			} else {
-				// This is probably an alias target; leave it alone...
-				klog.V(4).Infof("Found DNS record %s, but no records", dnsHostname)
-				found = true
+		foundA := false
+		{
+			dnsRecord := recordsMap["A::"+dnsHostname]
+			if dnsRecord != nil {
+				rrdatas := dnsRecord.Rrdatas()
+				if len(rrdatas) > 0 {
+					klog.V(4).Infof("Found DNS record %s => %s; won't create", dnsHostname, rrdatas)
+				} else {
+					// This is probably an alias target; leave it alone...
+					klog.V(4).Infof("Found DNS record %s, but no records", dnsHostname)
+				}
+				foundA = true
 			}
 		}
 
-		if found {
+		foundTXT := false
+		{
+			dnsRecord := recordsMap["TXT::"+dnsHostname]
+			if dnsRecord != nil {
+				foundTXT = true
+			}
+		}
+		if foundA && foundTXT {
 			continue
 		}
 
 		klog.V(2).Infof("Pre-creating DNS record %s => %s", dnsHostname, PlaceholderIP)
 
-		if cloud.ProviderID() == kops.CloudProviderDO {
-			changeset.Add(rrs.New(dnsHostname, []string{PlaceholderIP}, PlaceholderTTLDigitialOcean, rrstype.A))
-		} else {
-			changeset.Add(rrs.New(dnsHostname, []string{PlaceholderIP}, PlaceholderTTL, rrstype.A))
-			if cluster.Spec.ExternalDNS.Provider == kops.ExternalDNSProviderExternalDNS {
-				changeset.Add(rrs.New(dnsHostname, []string{fmt.Sprintf("\"heritage=external-dns,external-dns/owner=%s\"", cluster.GetClusterName())}, PlaceholderTTL, rrstype.TXT))
+		if !foundA {
+			if cloud.ProviderID() == kops.CloudProviderDO {
+				changeset.Add(rrs.New(dnsHostname, []string{PlaceholderIP}, PlaceholderTTLDigitialOcean, rrstype.A))
+			} else {
+				changeset.Add(rrs.New(dnsHostname, []string{PlaceholderIP}, PlaceholderTTL, rrstype.A))
+
 			}
 		}
-
+		if !foundTXT {
+			if cluster.Spec.ExternalDNS.Provider == kops.ExternalDNSProviderExternalDNS {
+				changeset.Add(rrs.New(dnsHostname, []string{fmt.Sprintf("\"heritage=external-dns,external-dns/owner=kops-%s\"", cluster.ObjectMeta.Name)}, PlaceholderTTL, rrstype.TXT))
+			}
+		}
 		created = append(created, dnsHostname)
 	}
 
@@ -235,18 +247,17 @@ func precreateDNS(ctx context.Context, cluster *kops.Cluster, cloud fi.Cloud) er
 func buildPrecreateDNSHostnames(cluster *kops.Cluster) []string {
 	dnsInternalSuffix := ".internal." + cluster.ObjectMeta.Name
 
-	var dnsHostnames []string
+	dnsHostnames := []string{}
 
-	if cluster.Spec.MasterPublicName != "" {
+	hasAPILoadbalancer := cluster.Spec.API != nil && cluster.Spec.API.LoadBalancer != nil
+	useLBForInternalAPI := hasAPILoadbalancer && cluster.Spec.API.LoadBalancer.UseForInternalApi
+
+	if cluster.Spec.MasterPublicName != "" && !hasAPILoadbalancer {
 		dnsHostnames = append(dnsHostnames, cluster.Spec.MasterPublicName)
-	} else {
-		klog.Warningf("cannot pre-create MasterPublicName - not set")
 	}
 
-	if cluster.Spec.MasterInternalName != "" {
+	if cluster.Spec.MasterInternalName != "" && !useLBForInternalAPI {
 		dnsHostnames = append(dnsHostnames, cluster.Spec.MasterInternalName)
-	} else {
-		klog.Warningf("cannot pre-create MasterInternalName - not set")
 	}
 
 	for _, etcdCluster := range cluster.Spec.EtcdClusters {

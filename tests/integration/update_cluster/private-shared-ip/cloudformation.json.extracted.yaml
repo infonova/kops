@@ -132,7 +132,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersprivatesharedipexamplecom.Pro
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   docker:
     skipInstall: true
   encryptionConfig: null
@@ -154,7 +154,6 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersprivatesharedipexamplecom.Pro
     - NamespaceLifecycle
     - LimitRanger
     - ServiceAccount
-    - PersistentVolumeLabel
     - DefaultStorageClass
     - DefaultTolerationSeconds
     - MutatingAdmissionWebhook
@@ -246,7 +245,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersprivatesharedipexamplecom.Pro
   ConfigBase: memfs://clusters.example.com/private-shared-ip.example.com
   InstanceGroupName: master-us-test-1a
   InstanceGroupRole: Master
-  NodeupConfigHash: vzsI19SA9cfwASqka1Ok++hoE44ax9mZbLIf/IV4JKQ=
+  NodeupConfigHash: XuZb1U3rXYsW1uPlWs6zYbsBg4KsXTR9CMn6RI0ytoY=
 
   __EOF_KUBE_ENV
 
@@ -385,7 +384,7 @@ Resources.AWSEC2LaunchTemplatenodesprivatesharedipexamplecom.Properties.LaunchTe
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   docker:
     skipInstall: true
   kubeProxy:
@@ -417,7 +416,7 @@ Resources.AWSEC2LaunchTemplatenodesprivatesharedipexamplecom.Properties.LaunchTe
   ConfigBase: memfs://clusters.example.com/private-shared-ip.example.com
   InstanceGroupName: nodes
   InstanceGroupRole: Node
-  NodeupConfigHash: vgYGO2A2XflnfzIMUqs/4w35aeGwCume6UZwFkCmOpk=
+  NodeupConfigHash: eDJbPwDvDdo4QtlwQLUc8utPYqdrS0FcdmYxbXcETkQ=
 
   __EOF_KUBE_ENV
 
