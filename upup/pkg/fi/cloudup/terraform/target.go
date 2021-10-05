@@ -17,6 +17,7 @@ limitations under the License.
 package terraform
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -27,6 +28,7 @@ import (
 	"k8s.io/kops/pkg/featureflag"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/cloudup/terraformWriter"
+	"k8s.io/kops/util/pkg/vfs"
 )
 
 type TerraformTarget struct {
@@ -39,15 +41,17 @@ type TerraformTarget struct {
 	outDir string
 	// extra config to add to the provider block
 	clusterSpecTarget *kops.TargetSpec
+	filesProvider     *vfs.TerraformProvider
 }
 
-func NewTerraformTarget(cloud fi.Cloud, project string, outDir string, clusterSpecTarget *kops.TargetSpec) *TerraformTarget {
+func NewTerraformTarget(cloud fi.Cloud, project string, filesProvider *vfs.TerraformProvider, outDir string, clusterSpecTarget *kops.TargetSpec) *TerraformTarget {
 	target := TerraformTarget{
 		Cloud:   cloud,
 		Project: project,
 
 		outDir:            outDir,
 		clusterSpecTarget: clusterSpecTarget,
+		filesProvider:     filesProvider,
 	}
 	target.InitTerraformWriter()
 	return &target
@@ -74,8 +78,18 @@ func (t *TerraformTarget) ProcessDeletions() bool {
 func tfGetProviderExtraConfig(c *kops.TargetSpec) map[string]string {
 	if c != nil &&
 		c.Terraform != nil &&
-		c.Terraform.ProviderExtraConfig != nil {
+		c.Terraform.FilesProviderExtraConfig != nil {
 		return *c.Terraform.ProviderExtraConfig
+	}
+	return nil
+}
+
+// tfGetFilesProviderExtraConfig is a helper function to get extra config with safety checks on the pointers.
+func tfGetFilesProviderExtraConfig(c *kops.TargetSpec) map[string]string {
+	if c != nil &&
+		c.Terraform != nil &&
+		c.Terraform.FilesProviderExtraConfig != nil {
+		return *c.Terraform.FilesProviderExtraConfig
 	}
 	return nil
 }
@@ -83,6 +97,10 @@ func tfGetProviderExtraConfig(c *kops.TargetSpec) map[string]string {
 func (t *TerraformTarget) Finish(taskMap map[string]fi.Task) error {
 	var err error
 	if featureflag.TerraformJSON.Enabled() {
+		if featureflag.TerraformManagedFiles.Enabled() {
+			// Terraform's JSON representation doesn't support provider aliases which are required for managed files
+			return errors.New("TerraformJSON cannot be used with TerraformManagedFiles")
+		}
 		err = t.finishJSON()
 	} else {
 		err = t.finishHCL2()

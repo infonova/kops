@@ -47,6 +47,7 @@ import (
 	"k8s.io/kops/pkg/testutils/golden"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/cloudup"
+	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
 	"k8s.io/kops/upup/pkg/fi/cloudup/gce"
 	"sigs.k8s.io/yaml"
 )
@@ -69,7 +70,6 @@ type integrationTest struct {
 	discovery                        bool
 	lifecycleOverrides               []string
 	sshKey                           bool
-	jsonOutput                       bool
 	bastionUserData                  bool
 	ciliumEtcd                       bool
 	// nth is true if we should check for files created by nth queue processor add on
@@ -109,11 +109,6 @@ func (i *integrationTest) withoutPolicies() *integrationTest {
 
 func (i *integrationTest) withLifecycleOverrides(lco []string) *integrationTest {
 	i.lifecycleOverrides = lco
-	return i
-}
-
-func (i *integrationTest) withJSONOutput() *integrationTest {
-	i.jsonOutput = true
 	return i
 }
 
@@ -180,6 +175,15 @@ func TestMinimal(t *testing.T) {
 		withAddons(dnsControllerAddon).
 		runTestTerraformAWS(t)
 	newIntegrationTest("minimal.example.com", "minimal").runTestCloudformation(t)
+}
+
+func TestNvidia(t *testing.T) {
+	newIntegrationTest("minimal.example.com", "nvidia").
+		withAddons(
+			dnsControllerAddon,
+			"nvidia.addons.k8s.io-k8s-1.16",
+		).
+		runTestTerraformAWS(t)
 }
 
 // TestMinimal runs the test on a minimum gossip configuration
@@ -251,6 +255,18 @@ func TestMinimalIPv6(t *testing.T) {
 	newIntegrationTest("minimal-ipv6.example.com", "minimal-ipv6").runTestCloudformation(t)
 }
 
+// TestIPv6CloudIPAM runs the test on a minimum IPv6 configuration, similar to kops create cluster minimal.example.com --zones us-west-1a
+func TestIPv6CloudIPAM(t *testing.T) {
+	featureflag.ParseFlags("+AWSIPv6")
+	unsetFeatureFlags := func() {
+		featureflag.ParseFlags("-AWSIPv6")
+	}
+	defer unsetFeatureFlags()
+	newIntegrationTest("minimal-ipv6.example.com", "ipv6-cloudipam").
+		withAddons(dnsControllerAddon).
+		runTestTerraformAWS(t)
+}
+
 // TestMinimalWarmPool runs the test on a minimum Warm Pool configuration
 func TestMinimalWarmPool(t *testing.T) {
 	newIntegrationTest("minimal-warmpool.example.com", "minimal-warmpool").
@@ -288,19 +304,6 @@ func TestExistingSG(t *testing.T) {
 func TestBastionAdditionalUserData(t *testing.T) {
 	newIntegrationTest("bastionuserdata.example.com", "bastionadditional_user-data").withPrivate().
 		withBastionUserData().
-		withAddons(dnsControllerAddon).
-		runTestTerraformAWS(t)
-}
-
-// TestMinimalJSON runs the test on a minimal data set and outputs JSON
-func TestMinimalJSON(t *testing.T) {
-	featureflag.ParseFlags("+TerraformJSON")
-	unsetFeatureFlags := func() {
-		featureflag.ParseFlags("-TerraformJSON")
-	}
-	defer unsetFeatureFlags()
-
-	newIntegrationTest("minimal-json.example.com", "minimal-json").withJSONOutput().
 		withAddons(dnsControllerAddon).
 		runTestTerraformAWS(t)
 }
@@ -637,11 +640,11 @@ func TestAPIServerNodes(t *testing.T) {
 
 // TestNTHQueueProcessor tests the output for resources required by NTH Queue Processor mode
 func TestNTHQueueProcessor(t *testing.T) {
-	newIntegrationTest("nthsqsresources.example.com", "nth_sqs_resources").
+	newIntegrationTest("nthsqsresources.longclustername.example.com", "nth_sqs_resources").
 		withNTH().
 		withAddons(dnsControllerAddon).
 		runTestTerraformAWS(t)
-	newIntegrationTest("nthsqsresources.example.com", "nth_sqs_resources").
+	newIntegrationTest("nthsqsresources.longclustername.example.com", "nth_sqs_resources").
 		runTestCloudformation(t)
 }
 
@@ -650,6 +653,7 @@ func TestCustomIRSA(t *testing.T) {
 	newIntegrationTest("minimal.example.com", "irsa").
 		withOIDCDiscovery().
 		withServiceAccountRole("myserviceaccount.default", false).
+		withServiceAccountRole("myserviceaccount.test-wildcard", false).
 		withServiceAccountRole("myotherserviceaccount.myapp", true).
 		withAddons(dnsControllerAddon).
 		runTestTerraformAWS(t)
@@ -957,13 +961,8 @@ func storeKeyset(t *testing.T, keyStore fi.Keystore, name string, testingKeyset 
 }
 
 func (i *integrationTest) runTestTerraformAWS(t *testing.T) {
-	tfFileName := ""
 	h := testutils.NewIntegrationTestHarness(t)
 	defer h.Close()
-
-	if i.jsonOutput {
-		tfFileName = "kubernetes.tf.json"
-	}
 
 	h.MockKopsVersion("1.21.0-alpha.1")
 	h.SetupMockAWS()
@@ -1030,17 +1029,17 @@ func (i *integrationTest) runTestTerraformAWS(t *testing.T) {
 		if i.nth {
 			expectedFilenames = append(expectedFilenames, []string{
 				"aws_s3_bucket_object_" + i.clusterName + "-addons-node-termination-handler.aws-k8s-1.11_content",
-				"aws_cloudwatch_event_rule_" + i.clusterName + "-ASGLifecycle_event_pattern",
-				"aws_cloudwatch_event_rule_" + i.clusterName + "-RebalanceRecommendation_event_pattern",
-				"aws_cloudwatch_event_rule_" + i.clusterName + "-SpotInterruption_event_pattern",
-				"aws_cloudwatch_event_rule_" + i.clusterName + "-InstanceStateChange_event_pattern",
+				"aws_cloudwatch_event_rule_" + awsup.GetClusterName40(i.clusterName) + "-ASGLifecycle_event_pattern",
+				"aws_cloudwatch_event_rule_" + awsup.GetClusterName40(i.clusterName) + "-RebalanceRecommendation_event_pattern",
+				"aws_cloudwatch_event_rule_" + awsup.GetClusterName40(i.clusterName) + "-SpotInterruption_event_pattern",
+				"aws_cloudwatch_event_rule_" + awsup.GetClusterName40(i.clusterName) + "-InstanceStateChange_event_pattern",
 				"aws_sqs_queue_" + strings.Replace(i.clusterName, ".", "-", -1) + "-nth_policy",
 			}...)
 		}
 	}
 	expectedFilenames = append(expectedFilenames, i.expectServiceAccountRolePolicies...)
 
-	i.runTest(t, h, expectedFilenames, tfFileName, tfFileName, nil)
+	i.runTest(t, h, expectedFilenames, "", "", nil)
 }
 
 func (i *integrationTest) runTestPhase(t *testing.T, phase cloudup.Phase) {

@@ -1,3 +1,4 @@
+//go:build !linux
 // +build !linux
 
 /*
@@ -47,6 +48,11 @@ func (n *Mounter) MountSensitive(source string, target string, fstype string, op
 
 // MountSensitiveWithoutSystemd always returns an error on unsupported platforms
 func (n *Mounter) MountSensitiveWithoutSystemd(source string, target string, fstype string, options []string, sensitiveOptions []string) error {
+	return errUnsupported
+}
+
+// MountSensitiveWithoutSystemdWithMountFlags always returns an error on unsupported platforms
+func (n *Mounter) MountSensitiveWithoutSystemdWithMountFlags(source string, target string, fstype string, options []string, sensitiveOptions []string, mountFlags []string) error {
 	return errUnsupported
 }
 

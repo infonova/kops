@@ -139,7 +139,7 @@ cloudConfig:
 containerRuntime: containerd
 containerd:
   logLevel: info
-  version: 1.4.9
+  version: 1.4.11
 docker:
   skipInstall: true
 encryptionConfig: null
@@ -164,7 +164,6 @@ kubeAPIServer:
   - NamespaceLifecycle
   - LimitRanger
   - ServiceAccount
-  - PersistentVolumeLabel
   - DefaultStorageClass
   - DefaultTolerationSeconds
   - MutatingAdmissionWebhook
@@ -259,7 +258,7 @@ CloudProvider: aws
 ConfigBase: memfs://clusters.example.com/complex.example.com
 InstanceGroupName: master-us-test-1a
 InstanceGroupRole: Master
-NodeupConfigHash: 3f+2lVOGZ+Av7Y6lc803/TJuvsaq7IKtX2gA7KngvrY=
+NodeupConfigHash: fqM+horNPzSjAlyshqJt02zzi4cPuixfQJ51ZW8gKXI=
 
 __EOF_KUBE_ENV
 

@@ -20,30 +20,24 @@ spec:
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   dnsZone: Z1AFAKE1ZON3YO
   docker:
     skipInstall: true
   etcdClusters:
   - backups:
       backupStore: memfs://clusters.example.com/sharedsubnet.example.com/backups/etcd/main
-    enableEtcdTLS: true
-    enableTLSAuth: true
     etcdMembers:
     - instanceGroup: master-us-test-1a
       name: us-test-1a
     name: main
-    provider: Manager
     version: 3.4.13
   - backups:
       backupStore: memfs://clusters.example.com/sharedsubnet.example.com/backups/etcd/events
-    enableEtcdTLS: true
-    enableTLSAuth: true
     etcdMembers:
     - instanceGroup: master-us-test-1a
       name: us-test-1a
     name: events
-    provider: Manager
     version: 3.4.13
   externalDns:
     provider: dns-controller
@@ -63,7 +57,6 @@ spec:
     - NamespaceLifecycle
     - LimitRanger
     - ServiceAccount
-    - PersistentVolumeLabel
     - DefaultStorageClass
     - DefaultTolerationSeconds
     - MutatingAdmissionWebhook

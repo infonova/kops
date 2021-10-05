@@ -1,4 +1,5 @@
 {{ with .Networking.Cilium }}
+{{ $semver := (trimPrefix "v" .Version) }}
 {{- if CiliumSecret }}
 apiVersion: v1
 kind: Secret
@@ -139,6 +140,10 @@ data:
   # backend and affinity maps. (default 65536)
   bpf-lb-map-max: "{{ .BPFLBMapMax }}"
 
+  {{ if .ChainingMode }}
+  cni-chaining-mode: "{{ .ChainingMode }}"
+  {{ end }}
+
   # enable-bpf-masquerade enables masquerading packets from endpoints leaving
   # the host with BPF instead of iptables. (default false)
   enable-bpf-masquerade: "{{ .EnableBPFMasquerade }}"
@@ -188,8 +193,10 @@ data:
   # [0] http://docs.cilium.io/en/stable/policy/language/#dns-based
   # [1] http://docs.cilium.io/en/stable/install/upgrade/#changes-that-may-require-action
   tofqdns-enable-poller: "{{- if .ToFqdnsEnablePoller -}}true{{- else -}}false{{- end -}}"
+  {{- if not (semverCompare ">=1.10.4 || ~1.9.10" $semver) }}
   # wait-bpf-mount makes init container wait until bpf filesystem is mounted
   wait-bpf-mount: "false"
+  {{- end }}
   # Enable fetching of container-runtime specific metadata
   #
   # By default, the Kubernetes pod and namespace labels are retrieved and
@@ -241,7 +248,7 @@ data:
   # enable-l7-proxy enables L7 proxy for L7 policy enforcement. (default true)
   enable-l7-proxy: "{{ .EnableL7Proxy }}"
 
-  cgroup-root: /sys/fs/cgroup/unified
+  cgroup-root: /run/cilium/cgroupv2
 
   {{ if WithDefaultBool .Hubble.Enabled false }}
   # Enable Hubble gRPC service.
@@ -580,6 +587,9 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: {{ printf "%q" .AgentPrometheusPort }}
         {{ end }}
+{{- with .AgentPodAnnotations }}
+        {{- . | nindent 8 }}
+{{- end }}
       labels:
         k8s-app: cilium
         kubernetes.io/cluster-service: "true"
@@ -683,7 +693,7 @@ spec:
         - name: CILIUM_ENABLE_POLICY
           value: {{ . }}
         {{ end }}
-        image: "quay.io/cilium/cilium:{{ .Version  }}"
+        image: "quay.io/cilium/cilium:{{ .Version }}"
         imagePullPolicy: IfNotPresent
         lifecycle:
           postStart:
@@ -712,14 +722,13 @@ spec:
         {{ end }}
 
         securityContext:
-          capabilities:
-            add:
-            - NET_ADMIN
-            - SYS_MODULE
           privileged: true
         volumeMounts:
         - mountPath: /sys/fs/bpf
           name: bpf-maps
+          {{- if semverCompare ">=1.10.4 || ~1.9.10" $semver }}
+          mountPropagation: Bidirectional
+          {{- end }}
         - mountPath: /var/run/cilium
           name: cilium-run
         - mountPath: /host/opt/cni/bin
@@ -772,26 +781,27 @@ spec:
               key: clean-cilium-bpf-state
               name: cilium-config
               optional: true
+        {{- if not (semverCompare ">=1.10.4 || ~1.9.10" $semver) }}
         - name: CILIUM_WAIT_BPF_MOUNT
           valueFrom:
             configMapKeyRef:
               key: wait-bpf-mount
               name: cilium-config
               optional: true
+        {{- end }}
         image: "quay.io/cilium/cilium:{{ .Version }}"
         imagePullPolicy: IfNotPresent
         name: clean-cilium-state
         securityContext:
-          capabilities:
-            add:
-            - NET_ADMIN
           privileged: true
         volumeMounts:
         - mountPath: /sys/fs/bpf
           name: bpf-maps
+          {{- if not (semverCompare ">=1.10.4 || ~1.9.10" $semver) }}
           mountPropagation: HostToContainer
+          {{- end }}
          # Required to mount cgroup filesystem from the host to cilium agent pod
-        - mountPath: /sys/fs/cgroup/unified
+        - mountPath: /run/cilium/cgroupv2
           name: cilium-cgroup
           mountPropagation: HostToContainer
         - mountPath: /var/run/cilium
@@ -827,8 +837,8 @@ spec:
         name: cni-path
       # To keep state between restarts / upgrades for cgroup2 filesystem
       - hostPath:
-          path: /sys/fs/cgroup/unified
-          type: DirectoryOrCreate
+          path: /run/cilium/cgroupv2
+          type: Directory
         name: cilium-cgroup
         # To install cilium cni configuration in the host
       - hostPath:

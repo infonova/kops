@@ -36,6 +36,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	"k8s.io/kops/pkg/apis/kops"
 	"k8s.io/kops/pkg/dns"
+	"k8s.io/kops/pkg/featureflag"
 	"k8s.io/kops/pkg/model/components"
 	"k8s.io/kops/pkg/model/iam"
 	"k8s.io/kops/upup/pkg/fi"
@@ -171,10 +172,6 @@ func validateClusterSpec(spec *kops.ClusterSpec, c *kops.Cluster, fieldPath *fie
 		allErrs = append(allErrs, validateAWSLoadBalancerController(c, spec.AWSLoadBalancerController, fieldPath.Child("awsLoadBalanceController"))...)
 	}
 
-	if spec.Authentication != nil && spec.Authentication.Aws != nil && c.IsKubernetesGTE("1.22") {
-		allErrs = append(allErrs, field.Forbidden(fieldPath.Child("authentication", "aws"), "AWS IAM authenticator is supported only for Kubernetes 1.21 and lower"))
-	}
-
 	if spec.SnapshotController != nil {
 		allErrs = append(allErrs, validateSnapshotController(c, spec.SnapshotController, fieldPath.Child("snapshotController"))...)
 
@@ -204,7 +201,6 @@ func validateClusterSpec(spec *kops.ClusterSpec, c *kops.Cluster, fieldPath *fie
 				allErrs = append(allErrs, validateEtcdClusterSpec(etcdCluster, c, fieldEtcdClusters.Index(i))...)
 			}
 			allErrs = append(allErrs, validateEtcdBackupStore(spec.EtcdClusters, fieldEtcdClusters)...)
-			allErrs = append(allErrs, validateEtcdTLS(spec.EtcdClusters, fieldEtcdClusters)...)
 			allErrs = append(allErrs, validateEtcdStorage(spec.EtcdClusters, fieldEtcdClusters)...)
 		}
 	}
@@ -214,7 +210,7 @@ func validateClusterSpec(spec *kops.ClusterSpec, c *kops.Cluster, fieldPath *fie
 	}
 
 	if spec.Containerd != nil {
-		allErrs = append(allErrs, validateContainerdConfig(spec.Containerd, fieldPath.Child("containerd"))...)
+		allErrs = append(allErrs, validateContainerdConfig(spec, spec.Containerd, fieldPath.Child("containerd"))...)
 	}
 
 	if spec.Docker != nil {
@@ -225,10 +221,6 @@ func validateClusterSpec(spec *kops.ClusterSpec, c *kops.Cluster, fieldPath *fie
 		if spec.Assets.ContainerProxy != nil && spec.Assets.ContainerRegistry != nil {
 			allErrs = append(allErrs, field.Forbidden(fieldPath.Child("assets", "containerProxy"), "containerProxy cannot be used in conjunction with containerRegistry"))
 		}
-	}
-
-	if spec.IAM == nil || spec.IAM.Legacy {
-		allErrs = append(allErrs, field.Forbidden(fieldPath.Child("iam", "legacy"), "legacy IAM permissions are no longer supported"))
 	}
 
 	if spec.RollingUpdate != nil {
@@ -259,11 +251,22 @@ func validateClusterSpec(spec *kops.ClusterSpec, c *kops.Cluster, fieldPath *fie
 	}
 
 	if spec.IAM != nil {
+		if spec.IAM.Legacy {
+			allErrs = append(allErrs, field.Forbidden(fieldPath.Child("iam", "legacy"), "legacy IAM permissions are no longer supported"))
+		}
+
 		if len(spec.IAM.ServiceAccountExternalPermissions) > 0 {
 			if spec.ServiceAccountIssuerDiscovery == nil || !spec.ServiceAccountIssuerDiscovery.EnableAWSOIDCProvider {
 				allErrs = append(allErrs, field.Forbidden(fieldPath.Child("iam", "serviceAccountExternalPermissions"), "serviceAccountExternalPermissions requires AWS OIDC Provider to be enabled"))
 			}
 			allErrs = append(allErrs, validateSAExternalPermissions(spec.IAM.ServiceAccountExternalPermissions, fieldPath.Child("iam", "serviceAccountExternalPermissions"))...)
+		}
+	}
+
+	if spec.PodCIDRFromCloud {
+		if !featureflag.AWSIPv6.Enabled() {
+			allErrs = append(allErrs, field.Forbidden(fieldPath.Child("podCIDRFromCloud", "serviceAccountExternalPermissions"), "podCIDRFromCloud requires the AWSIPv6 feature flag to be enabled"))
+
 		}
 	}
 
@@ -649,6 +652,12 @@ func validateKubelet(k *kops.KubeletConfigSpec, c *kops.Cluster, kubeletPath *fi
 			allErrs = append(allErrs, IsValidValue(kubeletPath.Child("logFormat"), &k.LogFormat, []string{"text", "json"})...)
 		}
 
+		if k.CPUCFSQuotaPeriod != nil {
+			if c.IsKubernetesGTE("1.20") {
+				allErrs = append(allErrs, field.Forbidden(kubeletPath.Child("cpuCFSQuotaPeriod"), "cpuCFSQuotaPeriod has been removed on Kubernetes >=1.20"))
+			}
+		}
+
 	}
 	return allErrs
 }
@@ -995,7 +1004,7 @@ func validateEtcdClusterSpec(spec kops.EtcdClusterSpec, c *kops.Cluster, fieldPa
 	}
 	if spec.Provider != "" {
 		value := string(spec.Provider)
-		allErrs = append(allErrs, IsValidValue(fieldPath.Child("provider"), &value, kops.SupportedEtcdProviderTypes)...)
+		allErrs = append(allErrs, IsValidValue(fieldPath.Child("provider"), &value, []string{string(kops.EtcdProviderTypeManager)})...)
 	}
 	if len(spec.Members) == 0 {
 		allErrs = append(allErrs, field.Required(fieldPath.Child("etcdMembers"), "No members defined in etcd cluster"))
@@ -1020,23 +1029,6 @@ func validateEtcdBackupStore(specs []kops.EtcdClusterSpec, fieldPath *field.Path
 			allErrs = append(allErrs, field.Forbidden(fieldPath.Index(0).Child("backupStore"), "the backup store must be unique for each etcd cluster"))
 		}
 		etcdBackupStore[x.Name] = true
-	}
-
-	return allErrs
-}
-
-// validateEtcdTLS checks the TLS settings for etcd are valid
-func validateEtcdTLS(specs []kops.EtcdClusterSpec, fieldPath *field.Path) field.ErrorList {
-	allErrs := field.ErrorList{}
-	var usingTLS int
-	for _, x := range specs {
-		if x.EnableEtcdTLS {
-			usingTLS++
-		}
-	}
-	// check both clusters are using tls if one is enabled
-	if usingTLS > 0 && usingTLS != len(specs) {
-		allErrs = append(allErrs, field.Forbidden(fieldPath.Index(0).Child("enableEtcdTLS"), "both etcd clusters must have TLS enabled or none at all"))
 	}
 
 	return allErrs
@@ -1256,7 +1248,7 @@ func validateContainerRuntime(runtime *string, fldPath *field.Path) field.ErrorL
 	return allErrs
 }
 
-func validateContainerdConfig(config *kops.ContainerdConfig, fldPath *field.Path) field.ErrorList {
+func validateContainerdConfig(spec *kops.ClusterSpec, config *kops.ContainerdConfig, fldPath *field.Path) field.ErrorList {
 	allErrs := field.ErrorList{}
 
 	if config.Version != nil {
@@ -1311,6 +1303,10 @@ func validateContainerdConfig(config *kops.ContainerdConfig, fldPath *field.Path
 			allErrs = append(allErrs, field.Invalid(fldPath.Child("packageHashArm64"), config.Packages.HashArm64,
 				"Package URL must also be set"))
 		}
+	}
+
+	if config.NvidiaGPU != nil {
+		allErrs = append(allErrs, validateNvidiaConfig(spec, config.NvidiaGPU, fldPath.Child("nvidia"))...)
 	}
 
 	return allErrs
@@ -1384,6 +1380,19 @@ func validateDockerConfig(config *kops.DockerConfig, fldPath *field.Path) field.
 		}
 	}
 
+	return allErrs
+}
+
+func validateNvidiaConfig(spec *kops.ClusterSpec, nvidia *kops.NvidiaGPUConfig, fldPath *field.Path) (allErrs field.ErrorList) {
+	if !fi.BoolValue(nvidia.Enabled) {
+		return allErrs
+	}
+	if kops.CloudProviderID(spec.CloudProvider) != kops.CloudProviderAWS {
+		allErrs = append(allErrs, field.Forbidden(fldPath, "Nvidia is only supported on AWS"))
+	}
+	if spec.ContainerRuntime != "containerd" {
+		allErrs = append(allErrs, field.Forbidden(fldPath, "Nvidia is only supported using containerd"))
+	}
 	return allErrs
 }
 

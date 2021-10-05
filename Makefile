@@ -455,6 +455,7 @@ pr:
 .PHONY: channels
 channels: ${CHANNELS}
 
+.PHONY: ${CHANNELS}
 ${CHANNELS}:
 	go build ${GCFLAGS} ${EXTRA_BUILDFLAGS} -o $@ ${LDFLAGS}"-X k8s.io/kops.Version=${VERSION} ${EXTRA_LDFLAGS}" k8s.io/kops/channels/cmd/channels
 
@@ -489,18 +490,26 @@ apimachinery-codegen:
 	# ref: https://github.com/kubernetes/gengo/issues/64
 	${KOPS_ROOT}/_output/bin/conversion-gen ${API_OPTIONS} --skip-unsafe=true --input-dirs k8s.io/kops/pkg/apis/kops/v1alpha2 --v=0  --output-file-base=zz_generated.conversion \
 		 --go-header-file "hack/boilerplate/boilerplate.generatego.txt"
+	grep 'requires manual conversion' ${KOPS_ROOT}/pkg/apis/kops/v1alpha2/zz_generated.conversion.go ; [ $$? -eq 1 ]
+	${KOPS_ROOT}/_output/bin/conversion-gen ${API_OPTIONS} --skip-unsafe=true --input-dirs k8s.io/kops/pkg/apis/kops/v1alpha3 --v=0  --output-file-base=zz_generated.conversion \
+		 --go-header-file "hack/boilerplate/boilerplate.generatego.txt"
+	grep 'requires manual conversion' ${KOPS_ROOT}/pkg/apis/kops/v1alpha3/zz_generated.conversion.go ; [ $$? -eq 1 ]
 	${KOPS_ROOT}/_output/bin/deepcopy-gen ${API_OPTIONS} --input-dirs k8s.io/kops/pkg/apis/kops --v=0  --output-file-base=zz_generated.deepcopy \
 		 --go-header-file "hack/boilerplate/boilerplate.generatego.txt"
 	${KOPS_ROOT}/_output/bin/deepcopy-gen ${API_OPTIONS} --input-dirs k8s.io/kops/pkg/apis/kops/v1alpha2 --v=0  --output-file-base=zz_generated.deepcopy \
 		 --go-header-file "hack/boilerplate/boilerplate.generatego.txt"
+	${KOPS_ROOT}/_output/bin/deepcopy-gen ${API_OPTIONS} --input-dirs k8s.io/kops/pkg/apis/kops/v1alpha3 --v=0  --output-file-base=zz_generated.deepcopy \
+		 --go-header-file "hack/boilerplate/boilerplate.generatego.txt"
 	${KOPS_ROOT}/_output/bin/defaulter-gen ${API_OPTIONS} --input-dirs k8s.io/kops/pkg/apis/kops/v1alpha2 --v=0  --output-file-base=zz_generated.defaults \
+		 --go-header-file "hack/boilerplate/boilerplate.generatego.txt"
+	${KOPS_ROOT}/_output/bin/defaulter-gen ${API_OPTIONS} --input-dirs k8s.io/kops/pkg/apis/kops/v1alpha3 --v=0  --output-file-base=zz_generated.defaults \
 		 --go-header-file "hack/boilerplate/boilerplate.generatego.txt"
 	#go install github.com/ugorji/go/codec/codecgen
 	# codecgen works only if invoked from directory where the file is located.
 	#cd pkg/apis/kops/ && ~/k8s/bin/codecgen -d 1234 -o types.generated.go instancegroup.go cluster.go
-	${KOPS_ROOT}/_output/bin/client-gen ${API_OPTIONS} --input-base k8s.io/kops/pkg/apis/ --input="kops/,kops/v1alpha2" --clientset-path k8s.io/kops/pkg/client/clientset_generated/ \
+	${KOPS_ROOT}/_output/bin/client-gen ${API_OPTIONS} --input-base k8s.io/kops/pkg/apis/ --input="kops/,kops/v1alpha2,kops/v1alpha3" --clientset-path k8s.io/kops/pkg/client/clientset_generated/ \
 		 --go-header-file "hack/boilerplate/boilerplate.generatego.txt"
-	${KOPS_ROOT}/_output/bin/client-gen ${API_OPTIONS} --clientset-name="clientset" --input-base k8s.io/kops/pkg/apis/ --input="kops/,kops/v1alpha2" --clientset-path k8s.io/kops/pkg/client/clientset_generated/ \
+	${KOPS_ROOT}/_output/bin/client-gen ${API_OPTIONS} --clientset-name="clientset" --input-base k8s.io/kops/pkg/apis/ --input="kops/,kops/v1alpha2,kops/v1alpha3" --clientset-path k8s.io/kops/pkg/client/clientset_generated/ \
 		 --go-header-file "hack/boilerplate/boilerplate.generatego.txt"
 
 .PHONY: verify-apimachinery

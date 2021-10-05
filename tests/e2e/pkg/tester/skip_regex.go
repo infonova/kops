@@ -19,6 +19,8 @@ package tester
 import (
 	"regexp"
 	"strings"
+
+	"k8s.io/kops/upup/pkg/fi/utils"
 )
 
 const (
@@ -49,6 +51,13 @@ func (t *Tester) setSkipRegexFlag() error {
 		skipRegex += "|external.IP.is.not.assigned.to.a.node"
 		// https://github.com/cilium/cilium/issues/14287
 		skipRegex += "|same.port.number.but.different.protocols|same.hostPort.but.different.hostIP.and.protocol"
+		if strings.Contains(cluster.Spec.KubernetesVersion, "v1.23.0") {
+			// Reassess after https://github.com/kubernetes/kubernetes/pull/102643 is merged
+			// ref:
+			// https://github.com/kubernetes/kubernetes/issues/96717
+			// https://github.com/cilium/cilium/issues/5719
+			skipRegex += "|should.create.a.Pod.with.SCTP.HostPort"
+		}
 	} else if networking.Calico != nil {
 		skipRegex += "|Services.*functioning.*NodePort"
 	} else if networking.Kuberouter != nil {
@@ -57,11 +66,22 @@ func (t *Tester) setSkipRegexFlag() error {
 		skipRegex += "|Services.*affinity"
 	}
 
-	if strings.HasSuffix(cluster.Spec.KubernetesVersion, "v1.23.0-alpha.0") {
-		// This matches `k8s_version='latest'` in build_jobs.py
-		// TODO(rifelpet): Remove once the next 1.23 pre-release tag has been created
-		// ref: https://github.com/kubernetes/kubernetes/pull/104061
-		skipRegex += "|MetricsGrabber.should.grab.all.metrics.from.a.ControllerManager"
+	if cluster.Spec.CloudProvider == "gce" {
+		// Firewall tests expect a specific format for cluster and control plane host names
+		// which kOps does not match
+		// ref: https://github.com/kubernetes/kubernetes/blob/1bd00776b5d78828a065b5c21e7003accc308a06/test/e2e/framework/providers/gce/firewall.go#L92-L100
+		skipRegex += "|Firewall"
+		// kube-dns tests are not skipped automatically if a cluster uses CoreDNS instead
+		skipRegex += "|kube-dns"
+		// this test assumes the cluster runs COS but kOps uses Ubuntu by default
+		// ref: https://github.com/kubernetes/test-infra/pull/22190
+		skipRegex += "|should.be.mountable.when.non-attachable"
+	}
+
+	if cluster.Spec.CloudProvider == "aws" && utils.IsIPv6CIDR(cluster.Spec.NonMasqueradeCIDR) {
+		// AWS VPC Classic ELBs are IPv4 only
+		// ref: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-internet-facing-load-balancers.html#internet-facing-ip-addresses
+		skipRegex += "|should.not.disrupt.a.cloud.load-balancer.s.connectivity.during.rollout"
 	}
 
 	// Ensure it is valid regex

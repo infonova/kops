@@ -20,30 +20,24 @@ spec:
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   dnsZone: "1"
   docker:
     skipInstall: true
   etcdClusters:
   - backups:
       backupStore: memfs://tests/minimal-gce.example.com/backups/etcd/main
-    enableEtcdTLS: true
-    enableTLSAuth: true
     etcdMembers:
     - instanceGroup: master-us-test1-a
       name: "1"
     name: main
-    provider: Manager
     version: 3.4.13
   - backups:
       backupStore: memfs://tests/minimal-gce.example.com/backups/etcd/events
-    enableEtcdTLS: true
-    enableTLSAuth: true
     etcdMembers:
     - instanceGroup: master-us-test1-a
       name: "1"
     name: events
-    provider: Manager
     version: 3.4.13
   externalDns:
     provider: dns-controller
@@ -63,7 +57,6 @@ spec:
     - NamespaceLifecycle
     - LimitRanger
     - ServiceAccount
-    - PersistentVolumeLabel
     - DefaultStorageClass
     - DefaultTolerationSeconds
     - MutatingAdmissionWebhook

@@ -132,7 +132,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersprivateciliumadvancedexamplec
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   docker:
     skipInstall: true
   encryptionConfig: null
@@ -156,7 +156,6 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersprivateciliumadvancedexamplec
     - NamespaceLifecycle
     - LimitRanger
     - ServiceAccount
-    - PersistentVolumeLabel
     - DefaultStorageClass
     - DefaultTolerationSeconds
     - MutatingAdmissionWebhook
@@ -249,7 +248,7 @@ Resources.AWSEC2LaunchTemplatemasterustest1amastersprivateciliumadvancedexamplec
   ConfigBase: memfs://clusters.example.com/privateciliumadvanced.example.com
   InstanceGroupName: master-us-test-1a
   InstanceGroupRole: Master
-  NodeupConfigHash: FzU3IcKcYEj83I/oyjYHlOlrvoZ5LIxOTn5oXLAMcW4=
+  NodeupConfigHash: /ukQwN1fLtSIHMRBBnFArg5KQv8z1wW22BqM1VkDI3U=
 
   __EOF_KUBE_ENV
 
@@ -388,7 +387,7 @@ Resources.AWSEC2LaunchTemplatenodesprivateciliumadvancedexamplecom.Properties.La
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.9
+    version: 1.4.11
   docker:
     skipInstall: true
   kubeProxy:
@@ -421,7 +420,7 @@ Resources.AWSEC2LaunchTemplatenodesprivateciliumadvancedexamplecom.Properties.La
   ConfigBase: memfs://clusters.example.com/privateciliumadvanced.example.com
   InstanceGroupName: nodes
   InstanceGroupRole: Node
-  NodeupConfigHash: 3zVYVrzVtEqtvLr7oIpFovp/KZJPk205VRTu9UH2QXg=
+  NodeupConfigHash: VxVjDe8c3z+4Se6fCZh+ElgTvu0w3yfI64FWYDJG1RQ=
 
   __EOF_KUBE_ENV
 

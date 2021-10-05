@@ -310,17 +310,6 @@ func (b *KopsModelContext) UseNetworkLoadBalancer() bool {
 	return b.Cluster.Spec.API.LoadBalancer.Class == kops.LoadBalancerClassNetwork
 }
 
-// UseEtcdTLS checks to see if etcd tls is enabled
-func (b *KopsModelContext) UseEtcdTLS() bool {
-	for _, x := range b.Cluster.Spec.EtcdClusters {
-		if x.EnableEtcdTLS {
-			return true
-		}
-	}
-
-	return false
-}
-
 // UseSSHKey returns true if SSHKeyName from the cluster spec is set to a nonempty string
 // or there is an SSH public key provisioned in the key store.
 func (b *KopsModelContext) UseSSHKey() bool {
@@ -407,4 +396,9 @@ func (b *KopsModelContext) UseServiceAccountExternalPermissions() bool {
 
 	return b.Cluster.Spec.IAM != nil &&
 		fi.BoolValue(b.Cluster.Spec.IAM.UseServiceAccountExternalPermissions)
+}
+
+// NetworkingIsCalico returns true if we are using calico networking
+func (b *KopsModelContext) NetworkingIsCalico() bool {
+	return b.Cluster.Spec.Networking != nil && b.Cluster.Spec.Networking.Calico != nil
 }
