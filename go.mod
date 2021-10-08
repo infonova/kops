@@ -56,6 +56,8 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.5.6
 	github.com/google/go-containerregistry v0.5.1
+	github.com/google/go-tpm v0.3.2
+	github.com/google/go-tpm-tools v0.3.0-beta1
 	github.com/google/uuid v1.2.0
 	github.com/gophercloud/gophercloud v0.18.0
 	github.com/gorilla/mux v1.8.0 // indirect
@@ -100,6 +102,6 @@ require (
 	k8s.io/mount-utils v0.22.2
 	k8s.io/utils v0.0.0-20210819203725-bdf08cb9a70a
 	rsc.io/letsencrypt v0.0.3 // indirect
-	sigs.k8s.io/controller-runtime v0.9.7
+	sigs.k8s.io/controller-runtime v0.10.2
 	sigs.k8s.io/yaml v1.2.0
 )
