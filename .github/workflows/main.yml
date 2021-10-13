@@ -23,6 +23,9 @@ jobs:
       - name: Checkout full
         # uses: actions/checkout@v2
         run: |
+          echo "here is the env:"
+          env
+          echo "cloning:"
           git clone ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} -b ${GITHUB_HEAD_REF-${GITHUB_REF##*/}} ${{ env.GOPATH }}/src/k8s.io/kops
 
       - name: Make all examples test
