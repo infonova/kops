@@ -45,6 +45,7 @@ Lifecycle: Sync
 Name: fip-node-3-cluster
 ---
 AvailabilityZone: zone-1
+ConfigDrive: false
 Flavor: blc.1-2
 FloatingIP:
   ForAPIServer: true
@@ -124,6 +125,7 @@ UserData:
     Name: master
 ---
 AvailabilityZone: zone-2
+ConfigDrive: false
 Flavor: blc.1-2
 FloatingIP:
   ForAPIServer: true
@@ -203,6 +205,7 @@ UserData:
     Name: master
 ---
 AvailabilityZone: zone-3
+ConfigDrive: false
 Flavor: blc.1-2
 FloatingIP:
   ForAPIServer: true
@@ -282,6 +285,7 @@ UserData:
     Name: master
 ---
 AvailabilityZone: zone-1
+ConfigDrive: false
 Flavor: blc.1-2
 FloatingIP:
   ForAPIServer: false
@@ -354,6 +358,7 @@ UserData:
     Name: node
 ---
 AvailabilityZone: zone-2
+ConfigDrive: false
 Flavor: blc.1-2
 FloatingIP:
   ForAPIServer: false
@@ -426,6 +431,7 @@ UserData:
     Name: node
 ---
 AvailabilityZone: zone-3
+ConfigDrive: false
 Flavor: blc.1-2
 FloatingIP:
   ForAPIServer: false
