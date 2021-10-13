@@ -35,7 +35,7 @@ jobs:
 
   build-linux-amd64:
     needs: changes
-    if: ${{ needs.changes.outputs.src == 'true' }}
+    if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-20.04
     steps:
       - name: Set up go
@@ -70,7 +70,7 @@ jobs:
 
   build-macos-amd64:
     needs: changes
-    if: ${{ needs.changes.outputs.src == 'true' }}
+    if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: macos-10.15
     steps:
       - name: Set up go
@@ -105,7 +105,7 @@ jobs:
 
   build-windows-amd64:
     needs: changes
-    if: ${{ needs.changes.outputs.src == 'true' }}
+    if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: windows-2019
     steps:
       - name: Set up go
@@ -140,7 +140,7 @@ jobs:
 
   verify:
     needs: changes
-    if: ${{ needs.changes.outputs.src == 'true' }}
+    if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-20.04
     steps:
       - name: Set up go
