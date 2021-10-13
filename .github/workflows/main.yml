@@ -21,10 +21,9 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout full
-        uses: actions/checkout@v2
-        with:
-          path: ${{ env.GOPATH }}/src/k8s.io/kops
-          fetch-depth: 0
+        # uses: actions/checkout@v2
+        run: |
+          git clone ${{ env.GITHUB_SERVER_URL}}/${{ env.GITHUB_REPOSITORY }} ${{ env.GOPATH }}/src/k8s.io/kops
 
       - name: Make all examples test
         working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
