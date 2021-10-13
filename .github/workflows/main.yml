@@ -20,11 +20,6 @@ jobs:
   build-linux-amd64:
     runs-on: ubuntu-20.04
     steps:
-      - name: Set up go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.15.8
-
       - name: Checkout full
         uses: actions/checkout@v2
         with:
@@ -34,6 +29,7 @@ jobs:
       - name: Make all examples test
         working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
         run: |
+          echo "git version"
           git version
 
           echo "git describe --always"
@@ -44,4 +40,8 @@ jobs:
 
           echo "git describe --always --all --exact"
           git describe --always --all --exact
+
+          echo "git tag -l | grep bp"
+          git tag -l | grep bp
+
 
