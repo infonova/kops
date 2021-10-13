@@ -104,7 +104,9 @@ func (b *KubeSchedulerBuilder) Build(c *fi.ModelBuilderContext) error {
 	}
 	{
 		var config *SchedulerConfig
-		if b.IsKubernetesGTE("1.19") {
+		if b.IsKubernetesGTE("1.22") {
+			config = NewSchedulerConfig("kubescheduler.config.k8s.io/v1beta2")
+		} else if b.IsKubernetesGTE("1.19") {
 			config = NewSchedulerConfig("kubescheduler.config.k8s.io/v1beta1")
 		} else {
 			config = NewSchedulerConfig("kubescheduler.config.k8s.io/v1alpha2")
@@ -250,12 +252,21 @@ func (b *KubeSchedulerBuilder) buildPod(kubeScheduler *kops.KubeSchedulerConfig)
 	addHostPathMapping(pod, container, "logfile", "/var/log/kube-scheduler.log").ReadOnly = false
 	// We use lighter containers that don't include shells
 	// But they have richer logging support via klog
-	container.Command = []string{"/usr/local/bin/kube-scheduler"}
-	container.Args = append(
-		sortedStrings(flags),
-		"--logtostderr=false", //https://github.com/kubernetes/klog/issues/60
-		"--alsologtostderr",
-		"--log-file=/var/log/kube-scheduler.log")
+	if b.IsKubernetesGTE("1.23") {
+		container.Command = []string{"/go-runner"}
+		container.Args = []string{
+			"--log-file=/var/log/kube-scheduler.log",
+			"/usr/local/bin/kube-scheduler",
+		}
+		container.Args = append(container.Args, sortedStrings(flags)...)
+	} else {
+		container.Command = []string{"/usr/local/bin/kube-scheduler"}
+		container.Args = append(
+			sortedStrings(flags),
+			"--logtostderr=false", //https://github.com/kubernetes/klog/issues/60
+			"--alsologtostderr",
+			"--log-file=/var/log/kube-scheduler.log")
+	}
 
 	if kubeScheduler.MaxPersistentVolumes != nil {
 		maxPDV := v1.EnvVar{
