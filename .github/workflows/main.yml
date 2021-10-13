@@ -23,7 +23,7 @@ jobs:
       - name: Checkout full
         # uses: actions/checkout@v2
         run: |
-          git clone ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} -b ${GITHUB_REF#refs/heads/} ${{ env.GOPATH }}/src/k8s.io/kops
+          git clone ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} -b ${GITHUB_HEAD_REF-${GITHUB_REF##*/}} ${{ env.GOPATH }}/src/k8s.io/kops
 
       - name: Make all examples test
         working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
