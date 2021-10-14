@@ -2311,11 +2311,6 @@ func (in *InstanceGroupSpec) DeepCopyInto(out *InstanceGroupSpec) {
 		*out = new(bool)
 		**out = **in
 	}
-	if in.RootVolumeDeleteOnTermination != nil {
-		in, out := &in.RootVolumeDeleteOnTermination, &out.RootVolumeDeleteOnTermination
-		*out = new(bool)
-		**out = **in
-	}
 	if in.RootVolumeEncryption != nil {
 		in, out := &in.RootVolumeEncryption, &out.RootVolumeEncryption
 		*out = new(bool)
@@ -4500,6 +4495,11 @@ func (in *OpenstackLoadbalancerConfig) DeepCopyInto(out *OpenstackLoadbalancerCo
 	}
 	if in.ManageSecGroups != nil {
 		in, out := &in.ManageSecGroups, &out.ManageSecGroups
+		*out = new(bool)
+		**out = **in
+	}
+	if in.EnableIngressHostname != nil {
+		in, out := &in.EnableIngressHostname, &out.EnableIngressHostname
 		*out = new(bool)
 		**out = **in
 	}
