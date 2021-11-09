@@ -239,13 +239,24 @@ func (b *ServerGroupModelBuilder) Build(c *fi.ModelBuilderContext) error {
 		} else {
 			affinityPolicies = append(affinityPolicies, "anti-affinity")
 		}
+
+		sgName := s(fmt.Sprintf("%s-%s", clusterName, ig.Name))
+
+		var backingSGName *string
+		if v, ok := ig.ObjectMeta.Annotations[openstack.OS_ANNOTATION+openstack.BACKING_SERVER_GROUP_NAME]; ok {
+			backingSGName = s(fmt.Sprintf("%s-%s", clusterName, v))
+		} else {
+			backingSGName = sgName
+		}
+
 		sgTask := &openstacktasks.ServerGroup{
-			Name:        s(fmt.Sprintf("%s-%s", clusterName, ig.Name)),
-			ClusterName: s(clusterName),
-			IGName:      s(ig.Name),
-			Policies:    affinityPolicies,
-			Lifecycle:   b.Lifecycle,
-			MaxSize:     ig.Spec.MaxSize,
+			Name:          sgName,
+			BackingSGName: backingSGName,
+			ClusterName:   s(clusterName),
+			IGName:        s(ig.Name),
+			Policies:      affinityPolicies,
+			Lifecycle:     b.Lifecycle,
+			MaxSize:       ig.Spec.MaxSize,
 		}
 		c.AddTask(sgTask)
 

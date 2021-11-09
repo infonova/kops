@@ -30,13 +30,14 @@ import (
 
 // +kops:fitask
 type ServerGroup struct {
-	ID          *string
-	Name        *string
-	ClusterName *string
-	IGName      *string
-	Policies    []string
-	MaxSize     *int32
-	Lifecycle   fi.Lifecycle
+	ID            *string
+	Name          *string
+	BackingSGName *string
+	ClusterName   *string
+	IGName        *string
+	Policies      []string
+	MaxSize       *int32
+	Lifecycle     fi.Lifecycle
 
 	mutex sync.Mutex
 
@@ -72,19 +73,20 @@ func (s *ServerGroup) Find(context *fi.Context) (*ServerGroup, error) {
 	}
 	var actual *ServerGroup
 	for _, serverGroup := range serverGroups {
-		if serverGroup.Name == *s.Name {
+		if serverGroup.Name == *s.BackingSGName {
 			if actual != nil {
 				return nil, fmt.Errorf("Found multiple server groups with name %s", fi.StringValue(s.Name))
 			}
 			actual = &ServerGroup{
-				Name:        fi.String(serverGroup.Name),
-				ClusterName: s.ClusterName,
-				IGName:      s.IGName,
-				ID:          fi.String(serverGroup.ID),
-				Lifecycle:   s.Lifecycle,
-				Policies:    serverGroup.Policies,
-				MaxSize:     fi.Int32(int32(len(serverGroup.Members))),
-				members:     serverGroup.Members,
+				Name:          s.Name,
+				BackingSGName: fi.String(serverGroup.Name),
+				ClusterName:   s.ClusterName,
+				IGName:        s.IGName,
+				ID:            fi.String(serverGroup.ID),
+				Lifecycle:     s.Lifecycle,
+				Policies:      serverGroup.Policies,
+				MaxSize:       fi.Int32(int32(len(serverGroup.Members))),
+				members:       serverGroup.Members,
 			}
 		}
 	}
@@ -111,6 +113,9 @@ func (_ *ServerGroup) CheckChanges(a, e, changes *ServerGroup) error {
 		if e.Name == nil {
 			return fi.RequiredField("Name")
 		}
+		if e.BackingSGName == nil {
+			return fi.RequiredField("BackingSGName")
+		}
 	} else {
 		if changes.ID != nil {
 			return fi.CannotChangeField("ID")
@@ -124,10 +129,10 @@ func (_ *ServerGroup) CheckChanges(a, e, changes *ServerGroup) error {
 
 func (_ *ServerGroup) RenderOpenstack(t *openstack.OpenstackAPITarget, a, e, changes *ServerGroup) error {
 	if a == nil {
-		klog.V(2).Infof("Creating ServerGroup with Name:%q", fi.StringValue(e.Name))
+		klog.V(2).Infof("Creating ServerGroup with Name:%q", fi.StringValue(e.BackingSGName))
 
 		opt := servergroups.CreateOpts{
-			Name:     fi.StringValue(e.Name),
+			Name:     fi.StringValue(e.BackingSGName),
 			Policies: e.Policies,
 		}
 
