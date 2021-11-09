@@ -32,6 +32,22 @@ import (
 )
 
 func (c *openstackCloud) CreateServerGroup(opt servergroups.CreateOptsBuilder) (*servergroups.ServerGroup, error) {
+	// TODO(sprietl): mutex + if server group exits -> return existing
+
+	// servergroups, err := os.osCloud.ListServerGroups(servergroups.ListOpts{})
+	servergroups, err := c.ListServerGroups(servergroups.ListOpts{})
+	if err == nil {
+		return nil, err
+	}
+
+	name = servergroups.CreateOpts.(opt)
+
+	for _, sg := range servergroups {
+		if name == sg.Name {
+			return &sg, nil
+		}
+	}
+
 	return createServerGroup(c, opt)
 }
 
@@ -91,7 +107,11 @@ func matchInstanceGroup(name string, clusterName string, instancegroups []*kops.
 
 		switch g.Spec.Role {
 		case kops.InstanceGroupRoleMaster, kops.InstanceGroupRoleNode, kops.InstanceGroupRoleBastion:
-			groupName = clusterName + "-" + g.ObjectMeta.Name
+			if v, ok := g.ObjectMeta.Annotations[OS_ANNOTATION+BACKING_SERVER_GROUP_NAME]; ok {
+				groupName = clusterName + "-" + v
+			} else {
+				groupName = clusterName + "-" + g.ObjectMeta.Name
+			}
 		default:
 			klog.Warningf("Ignoring InstanceGroup of unknown role %q", g.Spec.Role)
 			continue

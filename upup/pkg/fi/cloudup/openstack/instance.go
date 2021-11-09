@@ -40,6 +40,7 @@ const (
 	BOOT_FROM_VOLUME          = "osVolumeBoot"
 	BOOT_VOLUME_SIZE          = "osVolumeSize"
 	SERVER_GROUP_AFFINITY     = "serverGroupAffinity"
+	BACKING_SERVER_GROUP_NAME = "backingServerGroupName"
 )
 
 // floatingBackoff is the backoff strategy for listing openstack floatingips

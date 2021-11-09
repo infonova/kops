@@ -324,6 +324,7 @@ func (_ *Instance) RenderOpenstack(t *openstack.OpenstackAPITarget, a, e, change
 			KeyName:           openstackKeyPairName(fi.StringValue(e.SSHKey)),
 		}
 
+		// TODO(sprietl): instead of *e.ServerGroup.ID -> our servergroup gen with pulumi
 		sgext := schedulerhints.CreateOptsExt{
 			CreateOptsBuilder: keyext,
 			SchedulerHints: &schedulerhints.SchedulerHints{
