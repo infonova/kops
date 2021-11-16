@@ -6,7 +6,7 @@ spec:
   addons:
   - id: k8s-1.16
     manifest: kops-controller.addons.k8s.io/k8s-1.16.yaml
-    manifestHash: deb13261d1223911094af8daf2277f38350d02cd61f01c7ddfd22b8f9c84e000
+    manifestHash: 77ebba0be706cbaff303b52dd61134c2e41a7bf007032ee7e63229f4ff3b5cce
     name: kops-controller.addons.k8s.io
     needsRollingUpdate: control-plane
     selector:
@@ -40,14 +40,14 @@ spec:
     version: 9.99.0
   - id: k8s-1.12
     manifest: dns-controller.addons.k8s.io/k8s-1.12.yaml
-    manifestHash: 2172efb78ccd744dacd4912772cfbbaa8238a44d468d1a8af991c1ee0b2de5fe
+    manifestHash: 1b510880a165bb1cfb104e1809667c8e116e7abc64aceb70d4b22828380f0117
     name: dns-controller.addons.k8s.io
     selector:
       k8s-addon: dns-controller.addons.k8s.io
     version: 9.99.0
   - id: k8s-1.15
     manifest: cluster-autoscaler.addons.k8s.io/k8s-1.15.yaml
-    manifestHash: d402b56db4f6f601708ef366cef3105966fd20a2aedcb5adc2c3c88baba5e0c9
+    manifestHash: e9e6f6bf84e258ed32878bb654ceab2083d3bf3ee5f2e42e272e13e4be1ea512
     name: cluster-autoscaler.addons.k8s.io
     selector:
       k8s-addon: cluster-autoscaler.addons.k8s.io
@@ -82,7 +82,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.16
     manifest: networking.amazon-vpc-routed-eni/k8s-1.16.yaml
-    manifestHash: 3f10cffef443c2f18c3cab72a44e64ca4342fde13a88a5ffcff4291e35450b25
+    manifestHash: 3522f8761e75814ac416ad7640e77303c489201144499610528a9c50b02185b0
     name: networking.amazon-vpc-routed-eni
     needsRollingUpdate: all
     selector:

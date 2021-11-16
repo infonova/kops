@@ -365,7 +365,7 @@ func TestPrivateCiliumAdvanced(t *testing.T) {
 func TestPrivateCanal(t *testing.T) {
 	newIntegrationTest("privatecanal.example.com", "privatecanal").
 		withPrivate().
-		withAddons("networking.projectcalico.org.canal-k8s-1.16", dnsControllerAddon).
+		withAddons("networking.projectcalico.org.canal-k8s-1.22", "aws-ebs-csi-driver.addons.k8s.io-k8s-1.17", dnsControllerAddon).
 		runTestTerraformAWS(t)
 }
 
@@ -508,14 +508,14 @@ func TestCCM(t *testing.T) {
 
 func TestExternalDNS(t *testing.T) {
 	newIntegrationTest("minimal.example.com", "external_dns").
-		withAddons("external-dns.addons.k8s.io-k8s-1.12").
+		withAddons("external-dns.addons.k8s.io-k8s-1.19").
 		runTestTerraformAWS(t)
 }
 
 func TestExternalDNSIRSA(t *testing.T) {
 	newIntegrationTest("minimal.example.com", "external_dns_irsa").
 		withOIDCDiscovery().
-		withAddons("external-dns.addons.k8s.io-k8s-1.12").
+		withAddons("external-dns.addons.k8s.io-k8s-1.19").
 		withServiceAccountRole("external-dns.kube-system", true).
 		runTestTerraformAWS(t)
 }
