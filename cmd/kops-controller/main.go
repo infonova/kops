@@ -19,9 +19,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 
+	coordinationv1 "k8s.io/api/coordination/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -75,7 +75,7 @@ func main() {
 	opt.PopulateDefaults()
 
 	{
-		b, err := ioutil.ReadFile(configPath)
+		b, err := os.ReadFile(configPath)
 		if err != nil {
 			klog.Fatalf("failed to read configuration file %q: %v", configPath, err)
 		}
@@ -167,6 +167,10 @@ func main() {
 func buildScheme() error {
 	if err := corev1.AddToScheme(scheme); err != nil {
 		return fmt.Errorf("error registering corev1: %v", err)
+	}
+	// Needed so that the leader-election system can post events
+	if err := coordinationv1.AddToScheme(scheme); err != nil {
+		return fmt.Errorf("error registering coordinationv1: %v", err)
 	}
 	return nil
 }

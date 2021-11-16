@@ -23,6 +23,7 @@ import (
 
 	"k8s.io/klog/v2"
 	"k8s.io/kops/pkg/apis/kops"
+	"k8s.io/kops/pkg/wellknownports"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/cloudup/gcetasks"
 )
@@ -91,7 +92,20 @@ func (b *FirewallModelBuilder) Build(c *fi.ModelBuilderContext) error {
 			Network:    b.LinkToNetwork(),
 			SourceTags: []string{b.GCETagForRole(kops.InstanceGroupRoleNode)},
 			TargetTags: []string{b.GCETagForRole(kops.InstanceGroupRoleMaster)},
-			Allowed:    []string{"tcp:443", "tcp:4194"},
+			Allowed: []string{
+				fmt.Sprintf("tcp:%d", wellknownports.KubeAPIServer),
+				fmt.Sprintf("tcp:%d", wellknownports.KopsControllerPort),
+			},
+		}
+		if b.IsGossip() {
+			t.Allowed = append(t.Allowed, fmt.Sprintf("udp:%d", wellknownports.DNSControllerGossipMemberlist))
+			t.Allowed = append(t.Allowed, fmt.Sprintf("udp:%d", wellknownports.ProtokubeGossipMemberlist))
+		}
+		if b.NetworkingIsCalico() {
+			t.Allowed = append(t.Allowed, "ipip")
+		}
+		if b.NetworkingIsCilium() {
+			t.Allowed = append(t.Allowed, fmt.Sprintf("udp:%d", wellknownports.VxlanUDP))
 		}
 		c.AddTask(t)
 	}

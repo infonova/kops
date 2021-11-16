@@ -15,6 +15,10 @@ spec:
   - 0.0.0.0/0
   - ::/0
   channel: stable
+  cloudConfig:
+    awsEBSCSIDriver:
+      enabled: true
+  cloudControllerManager: {}
   cloudProvider: aws
   configBase: memfs://clusters.example.com/minimal-ipv6.example.com
   etcdClusters:
@@ -35,7 +39,7 @@ spec:
   networkCIDR: 172.20.0.0/16
   networking:
     cni: {}
-  nonMasqueradeCIDR: 100.64.0.0/10
+  nonMasqueradeCIDR: ::/0
   topology:
     masters: public
     nodes: public

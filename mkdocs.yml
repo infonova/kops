@@ -72,6 +72,7 @@ nav:
     - Addons: "addons.md"
   - Operations:
     - Updates & Upgrades: "operations/updates_and_upgrades.md"
+    - Rolling Updates: "operations/rolling-update.md"
     - Working with Instance Groups: "tutorial/working-with-instancegroups.md"
     - Using Manifests and Customizing: "manifests_and_customizing_via_api.md"
     - High Availability: "operations/high_availability.md"
@@ -105,6 +106,7 @@ nav:
       - Flannel: "networking/flannel.md"
       - Kube-Router: "networking/kube-router.md"
       - Weave: "networking/weave.md"
+    - IPv6: "networking/ipv6.md"
     - Run kOps in an existing VPC: "run_in_existing_vpc.md"
     - Supported network topologies: "topology.md"
     - Subdomain setup: "creating_subdomain.md"
@@ -126,7 +128,6 @@ nav:
     - Custom CA: "custom_ca.md"
     - Horizontal Pod Autoscaling: "horizontal_pod_autoscaling.md"
     - Egress Proxy: "http_proxy.md"
-    - Node Authorization: "node_authorization.md"
     - Node Resource Allocation: "node_resource_handling.md"
     - Terraform: "terraform.md"
     - Authentication: "authentication.md"

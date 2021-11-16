@@ -9,6 +9,7 @@ spec:
   authorization:
     rbac: {}
   channel: stable
+  cloudControllerManager: {}
   cloudProvider: aws
   configBase: memfs://tests/ipv6.example.com
   etcdClusters:
@@ -39,13 +40,13 @@ spec:
   networkCIDR: 172.20.0.0/16
   networking:
     calico: {}
-  nonMasqueradeCIDR: 100.64.0.0/10
+  nonMasqueradeCIDR: ::/0
   sshAccess:
   - 0.0.0.0/0
   - ::/0
   subnets:
   - cidr: 172.20.32.0/19
-    ipv6CIDR: /64#1
+    ipv6CIDR: /64#0
     name: us-test-1a
     type: Public
     zone: us-test-1a
@@ -65,7 +66,7 @@ metadata:
     kops.k8s.io/cluster: ipv6.example.com
   name: master-us-test-1a
 spec:
-  image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20211001
+  image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20211015
   instanceMetadata:
     httpPutResponseHopLimit: 3
     httpTokens: required
@@ -88,7 +89,7 @@ metadata:
     kops.k8s.io/cluster: ipv6.example.com
   name: nodes-us-test-1a
 spec:
-  image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20211001
+  image: 099720109477/ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-20211015
   instanceMetadata:
     httpPutResponseHopLimit: 1
     httpTokens: required

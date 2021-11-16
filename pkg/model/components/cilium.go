@@ -103,10 +103,6 @@ func (b *CiliumOptionsBuilder) BuildOptions(o interface{}) error {
 		c.ToFqdnsDNSRejectResponseCode = "refused"
 	}
 
-	if c.ContainerRuntimeLabels == "" {
-		c.ContainerRuntimeLabels = "none"
-	}
-
 	if c.AgentPrometheusPort == 0 {
 		c.AgentPrometheusPort = wellknownports.CiliumPrometheusPort
 	}
@@ -120,7 +116,7 @@ func (b *CiliumOptionsBuilder) BuildOptions(o interface{}) error {
 	}
 
 	if c.Tunnel == "" {
-		if c.Ipam == "eni" || clusterSpec.PodCIDRFromCloud {
+		if c.Ipam == "eni" || clusterSpec.IsIPv6Only() {
 			c.Tunnel = "disabled"
 		} else {
 			c.Tunnel = "vxlan"
@@ -137,6 +133,10 @@ func (b *CiliumOptionsBuilder) BuildOptions(o interface{}) error {
 
 	if c.EnableL7Proxy == nil {
 		c.EnableL7Proxy = fi.Bool(true)
+	}
+
+	if c.DisableCNPStatusUpdates == nil {
+		c.DisableCNPStatusUpdates = fi.Bool(true)
 	}
 
 	if c.CPURequest == nil {

@@ -24,7 +24,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"hash/fnv"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"runtime/debug"
 	"time"
@@ -88,6 +88,7 @@ func (s *Server) Start() error {
 		return err
 	}
 
+	klog.Infof("kops-controller listening on %s", s.opt.Server.Listen)
 	return s.server.ListenAndServeTLS(s.opt.Server.ServerCertificatePath, s.opt.Server.ServerKeyPath)
 }
 
@@ -98,7 +99,7 @@ func (s *Server) bootstrap(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		klog.Infof("bootstrap %s read err: %v", r.RemoteAddr, err)
 		w.WriteHeader(http.StatusBadRequest)

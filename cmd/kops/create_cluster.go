@@ -22,7 +22,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
@@ -220,6 +219,11 @@ func NewCmdCreateCluster(f *util.Factory, out io.Writer) *cobra.Command {
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		})
 	}
+	cmd.Flags().StringVar(&options.DiscoveryStore, "discovery-store", options.DiscoveryStore, "A public location where we publish OIDC-compatible discovery information under a cluster-specific directory. Enables IRSA in AWS.")
+	cmd.RegisterFlagCompletionFunc("discovery-store", func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+		// TODO complete vfs paths
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	})
 
 	var validClouds []string
 	{
@@ -830,7 +834,7 @@ func loadSSHPublicKeys(sshPublicKey string) (map[string][]byte, error) {
 	sshPublicKeys := make(map[string][]byte)
 	if sshPublicKey != "" {
 		sshPublicKey = utils.ExpandPath(sshPublicKey)
-		authorized, err := ioutil.ReadFile(sshPublicKey)
+		authorized, err := os.ReadFile(sshPublicKey)
 		if err != nil {
 			return nil, err
 		}

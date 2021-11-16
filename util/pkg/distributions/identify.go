@@ -18,7 +18,7 @@ package distributions
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path"
 	"strings"
 
@@ -28,7 +28,7 @@ import (
 // FindDistribution identifies the distribution on which we are running
 func FindDistribution(rootfs string) (Distribution, error) {
 	// All supported distros have an /etc/os-release file
-	osReleaseBytes, err := ioutil.ReadFile(path.Join(rootfs, "etc/os-release"))
+	osReleaseBytes, err := os.ReadFile(path.Join(rootfs, "etc/os-release"))
 	osRelease := make(map[string]string)
 	if err == nil {
 		for _, line := range strings.Split(string(osReleaseBytes), "\n") {
@@ -72,6 +72,8 @@ func FindDistribution(rootfs string) (Distribution, error) {
 		return DistributionUbuntu2104, nil
 	case "ubuntu-21.10":
 		return DistributionUbuntu2110, nil
+	case "ubuntu-22.04":
+		return DistributionUbuntu2204, nil
 	}
 
 	// Some distros have a more verbose VERSION_ID

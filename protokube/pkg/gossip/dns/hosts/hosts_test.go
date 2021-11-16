@@ -17,10 +17,8 @@ limitations under the License.
 package hosts
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"k8s.io/kops/pkg/diff"
@@ -28,7 +26,7 @@ import (
 
 func TestRemovesDuplicateGuardedBlocks(t *testing.T) {
 	in := `
-foo 10.2.3.4
+10.2.3.4 foo
 
 # Begin host entries managed by etcd-manager[etcd] - do not edit
 # End host entries managed by etcd-manager[etcd]
@@ -53,7 +51,7 @@ foo 10.2.3.4
 `
 
 	expected := `
-foo 10.2.3.4
+10.2.3.4 foo
 
 # Begin host entries managed by etcd-manager[etcd] - do not edit
 # End host entries managed by etcd-manager[etcd]
@@ -61,9 +59,9 @@ foo 10.2.3.4
 # End host entries managed by etcd-manager[etcd]
 
 # Begin host entries managed by kops - do not edit
-a\t10.0.1.1 10.0.1.2
-b\t10.0.2.1
-c\t
+10.0.1.1	a
+10.0.1.2	a
+10.0.2.1	b
 # End host entries managed by kops
 `
 
@@ -72,7 +70,7 @@ c\t
 
 func TestRecoversFromBadNesting(t *testing.T) {
 	in := `
-foo 10.2.3.4
+10.2.3.4 foo
 
 # End host entries managed by kops
 # Begin host entries managed by kops - do not edit
@@ -94,19 +92,19 @@ foo 10.2.3.4
 # Begin host entries managed by kops - do not edit
 # End host entries managed by kops
 
-bar 10.1.2.3
+10.1.2.3 bar
 `
 
 	expected := `
-foo 10.2.3.4
+10.2.3.4 foo
 
 
-bar 10.1.2.3
+10.1.2.3 bar
 
 # Begin host entries managed by kops - do not edit
-a\t10.0.1.1 10.0.1.2
-b\t10.0.2.1
-c\t
+10.0.1.1	a
+10.0.1.2	a
+10.0.2.1	b
 # End host entries managed by kops
 `
 
@@ -114,9 +112,7 @@ c\t
 }
 
 func runTest(t *testing.T, in string, expected string) {
-	expected = strings.Replace(expected, "\\t", "\t", -1)
-
-	dir, err := ioutil.TempDir("", "")
+	dir, err := os.MkdirTemp("", "")
 	if err != nil {
 		t.Fatalf("error creating temp dir: %v", err)
 	}
@@ -128,23 +124,36 @@ func runTest(t *testing.T, in string, expected string) {
 	}()
 
 	p := filepath.Join(dir, "hosts")
-	addrToHosts := map[string][]string{
+	namesToAddresses := map[string][]string{
 		"a": {"10.0.1.2", "10.0.1.1"},
 		"b": {"10.0.2.1"},
 		"c": {},
 	}
 
-	if err := ioutil.WriteFile(p, []byte(in), 0755); err != nil {
+	if err := os.WriteFile(p, []byte(in), 0755); err != nil {
 		t.Fatalf("error writing hosts file: %v", err)
 	}
 
 	// We run it repeatedly to make sure we don't change it accidentally
 	for i := 0; i < 100; i++ {
-		if err := UpdateHostsFileWithRecords(p, addrToHosts); err != nil {
+		mutator := func(existing []string) (*HostMap, error) {
+			hostMap := &HostMap{}
+			badLines := hostMap.Parse(existing)
+			if len(badLines) != 0 {
+				t.Errorf("unexpected lines in /etc/hosts: %v", badLines)
+			}
+
+			for name, addresses := range namesToAddresses {
+				hostMap.ReplaceRecords(name, addresses)
+			}
+
+			return hostMap, nil
+		}
+		if err := UpdateHostsFileWithRecords(p, mutator); err != nil {
 			t.Fatalf("error updating hosts file: %v", err)
 		}
 
-		b, err := ioutil.ReadFile(p)
+		b, err := os.ReadFile(p)
 		if err != nil {
 			t.Fatalf("error reading output file: %v", err)
 		}

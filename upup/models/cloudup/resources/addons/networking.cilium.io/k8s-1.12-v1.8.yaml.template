@@ -148,7 +148,6 @@ data:
   # - none
   # - auto (automatically detect the container runtime)
   #
-  container-runtime: "{{ .ContainerRuntimeLabels }}"
   masquerade: "{{- if WithDefaultBool .DisableMasquerade false -}}false{{- else -}}true{{- end -}}"
   install-iptables-rules: "{{- if .IPTablesRulesNoinstall -}}false{{- else -}}true{{- end -}}"
   auto-direct-node-routes: "{{ .AutoDirectNodeRoutes }}"
@@ -421,7 +420,7 @@ spec:
         # Annotation required for prometheus auto-discovery scraping
         # https://docs.cilium.io/en/v1.9/operations/metrics/#installation
         prometheus.io/scrape: "true"
-        prometheus.io/port: {{ printf "%q" .Networking.Cilium.AgentPrometheusPort }}
+        prometheus.io/port: "{{ .Networking.Cilium.AgentPrometheusPort }}"
         {{ end }}
       labels:
         k8s-app: cilium

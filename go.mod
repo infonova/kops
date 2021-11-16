@@ -4,9 +4,6 @@ go 1.17
 
 // Version kubernetes-1.22.2 => tag v0.22.2
 
-// This should match hack/go.mod
-replace k8s.io/code-generator => k8s.io/code-generator v0.22.2
-
 replace (
 	k8s.io/api => k8s.io/api v0.22.2
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.22.2
@@ -46,7 +43,7 @@ require (
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.1059
 	github.com/apparentlymart/go-cidr v1.1.0
 	github.com/aws/amazon-ec2-instance-selector/v2 v2.0.2
-	github.com/aws/aws-sdk-go v1.40.38
+	github.com/aws/aws-sdk-go v1.42.5
 	github.com/blang/semver/v4 v4.0.0
 	github.com/denverdino/aliyungo v0.0.0-20210425065611-55bee4942cba
 	github.com/digitalocean/godo v1.64.2
@@ -54,7 +51,7 @@ require (
 	github.com/go-logr/logr v0.4.0
 	github.com/gogo/protobuf v1.3.2
 	github.com/google/go-cmp v0.5.6
-	github.com/google/go-containerregistry v0.5.1
+	github.com/google/go-containerregistry v0.6.0
 	github.com/google/go-tpm v0.3.2
 	github.com/google/go-tpm-tools v0.3.0-beta1
 	github.com/google/uuid v1.2.0
@@ -128,7 +125,7 @@ require (
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/docker/cli v20.10.7+incompatible // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/docker/docker v20.10.6+incompatible // indirect
+	github.com/docker/docker v20.10.7+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.6.3 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
@@ -172,7 +169,7 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
-	github.com/klauspost/compress v1.11.13 // indirect
+	github.com/klauspost/compress v1.13.0 // indirect
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
