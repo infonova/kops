@@ -1661,7 +1661,7 @@
                 "s3:Get*"
               ],
               "Effect": "Allow",
-              "Resource": "arn:aws:s3:::placeholder-read-bucket/clusters.example.com/privateciliumadvanced.example.com/*"
+              "Resource": "arn:aws-test:s3:::placeholder-read-bucket/clusters.example.com/privateciliumadvanced.example.com/*"
             },
             {
               "Action": [
@@ -1671,7 +1671,7 @@
                 "s3:PutObject"
               ],
               "Effect": "Allow",
-              "Resource": "arn:aws:s3:::placeholder-write-bucket/clusters.example.com/privateciliumadvanced.example.com/backups/etcd/main/*"
+              "Resource": "arn:aws-test:s3:::placeholder-write-bucket/clusters.example.com/privateciliumadvanced.example.com/backups/etcd/main/*"
             },
             {
               "Action": [
@@ -1681,7 +1681,7 @@
                 "s3:PutObject"
               ],
               "Effect": "Allow",
-              "Resource": "arn:aws:s3:::placeholder-write-bucket/clusters.example.com/privateciliumadvanced.example.com/backups/etcd/events/*"
+              "Resource": "arn:aws-test:s3:::placeholder-write-bucket/clusters.example.com/privateciliumadvanced.example.com/backups/etcd/events/*"
             },
             {
               "Action": [
@@ -1691,7 +1691,7 @@
                 "s3:PutObject"
               ],
               "Effect": "Allow",
-              "Resource": "arn:aws:s3:::placeholder-write-bucket/clusters.example.com/privateciliumadvanced.example.com/backups/etcd/cilium/*"
+              "Resource": "arn:aws-test:s3:::placeholder-write-bucket/clusters.example.com/privateciliumadvanced.example.com/backups/etcd/cilium/*"
             },
             {
               "Action": [
@@ -1702,7 +1702,7 @@
               ],
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:s3:::placeholder-read-bucket"
+                "arn:aws-test:s3:::placeholder-read-bucket"
               ]
             },
             {
@@ -1714,7 +1714,7 @@
               ],
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:s3:::placeholder-write-bucket"
+                "arn:aws-test:s3:::placeholder-write-bucket"
               ]
             },
             {
@@ -1725,7 +1725,7 @@
               ],
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:route53:::hostedzone/Z1AFAKE1ZON3YO"
+                "arn:aws-test:route53:::hostedzone/Z1AFAKE1ZON3YO"
               ]
             },
             {
@@ -1734,7 +1734,7 @@
               ],
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:route53:::change/*"
+                "arn:aws-test:route53:::change/*"
               ]
             },
             {
@@ -1759,8 +1759,8 @@
               },
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:ec2:*:*:volume/*",
-                "arn:aws:ec2:*:*:snapshot/*"
+                "arn:aws-test:ec2:*:*:volume/*",
+                "arn:aws-test:ec2:*:*:snapshot/*"
               ]
             },
             {
@@ -1775,8 +1775,8 @@
               },
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:ec2:*:*:volume/*",
-                "arn:aws:ec2:*:*:snapshot/*"
+                "arn:aws-test:ec2:*:*:volume/*",
+                "arn:aws-test:ec2:*:*:snapshot/*"
               ]
             },
             {
@@ -1788,8 +1788,8 @@
               },
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:ec2:*:*:volume/*",
-                "arn:aws:ec2:*:*:snapshot/*"
+                "arn:aws-test:ec2:*:*:volume/*",
+                "arn:aws-test:ec2:*:*:snapshot/*"
               ]
             },
             {
@@ -1807,6 +1807,7 @@
                 "ec2:DescribeAccountAttributes",
                 "ec2:DescribeInstanceTypes",
                 "ec2:DescribeInstances",
+                "ec2:DescribeLaunchTemplateVersions",
                 "ec2:DescribeNetworkInterfaces",
                 "ec2:DescribeRegions",
                 "ec2:DescribeRouteTables",
@@ -1820,12 +1821,16 @@
                 "ec2:DetachNetworkInterface",
                 "ec2:ModifyNetworkInterfaceAttribute",
                 "ec2:UnassignPrivateIpAddresses",
+                "elasticloadbalancing:AddTags",
+                "elasticloadbalancing:CreateListener",
+                "elasticloadbalancing:CreateTargetGroup",
                 "elasticloadbalancing:DescribeListeners",
                 "elasticloadbalancing:DescribeLoadBalancerAttributes",
                 "elasticloadbalancing:DescribeLoadBalancerPolicies",
                 "elasticloadbalancing:DescribeLoadBalancers",
                 "elasticloadbalancing:DescribeTargetGroups",
                 "elasticloadbalancing:DescribeTargetHealth",
+                "elasticloadbalancing:RegisterTargets",
                 "iam:GetServerCertificate",
                 "iam:ListServerCertificates",
                 "kms:DescribeKey",
@@ -1851,6 +1856,8 @@
                 "elasticloadbalancing:ApplySecurityGroupsToLoadBalancer",
                 "elasticloadbalancing:AttachLoadBalancerToSubnets",
                 "elasticloadbalancing:ConfigureHealthCheck",
+                "elasticloadbalancing:CreateLoadBalancerListeners",
+                "elasticloadbalancing:CreateLoadBalancerPolicy",
                 "elasticloadbalancing:DeleteListener",
                 "elasticloadbalancing:DeleteLoadBalancer",
                 "elasticloadbalancing:DeleteLoadBalancerListeners",
@@ -1880,8 +1887,6 @@
                 "ec2:CreateVolume",
                 "elasticloadbalancing:CreateListener",
                 "elasticloadbalancing:CreateLoadBalancer",
-                "elasticloadbalancing:CreateLoadBalancerListeners",
-                "elasticloadbalancing:CreateLoadBalancerPolicy",
                 "elasticloadbalancing:CreateTargetGroup"
               ],
               "Condition": {
@@ -1914,10 +1919,10 @@
               ],
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:s3:::placeholder-read-bucket/clusters.example.com/privateciliumadvanced.example.com/addons/*",
-                "arn:aws:s3:::placeholder-read-bucket/clusters.example.com/privateciliumadvanced.example.com/cluster-completed.spec",
-                "arn:aws:s3:::placeholder-read-bucket/clusters.example.com/privateciliumadvanced.example.com/igconfig/node/*",
-                "arn:aws:s3:::placeholder-read-bucket/clusters.example.com/privateciliumadvanced.example.com/secrets/dockerconfig"
+                "arn:aws-test:s3:::placeholder-read-bucket/clusters.example.com/privateciliumadvanced.example.com/addons/*",
+                "arn:aws-test:s3:::placeholder-read-bucket/clusters.example.com/privateciliumadvanced.example.com/cluster-completed.spec",
+                "arn:aws-test:s3:::placeholder-read-bucket/clusters.example.com/privateciliumadvanced.example.com/igconfig/node/*",
+                "arn:aws-test:s3:::placeholder-read-bucket/clusters.example.com/privateciliumadvanced.example.com/secrets/dockerconfig"
               ]
             },
             {
@@ -1929,7 +1934,7 @@
               ],
               "Effect": "Allow",
               "Resource": [
-                "arn:aws:s3:::placeholder-read-bucket"
+                "arn:aws-test:s3:::placeholder-read-bucket"
               ]
             },
             {

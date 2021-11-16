@@ -737,8 +737,6 @@ func validateNetworking(cluster *kops.Cluster, v *kops.NetworkingSpec, fldPath *
 
 		if c.CloudProvider != "aws" {
 			allErrs = append(allErrs, field.Forbidden(fldPath.Child("amazonvpc"), "amazon-vpc-routed-eni networking is supported only in AWS"))
-		} else if cluster.IsKubernetesGTE("1.22") {
-			allErrs = append(allErrs, field.Forbidden(fldPath.Child("amazonvpc"), "amazon-vpc-routed-eni networking is supported only for Kubernetes 1.21 and lower"))
 		}
 	}
 
@@ -806,10 +804,6 @@ func validateNetworkingCanal(c *kops.Cluster, v *kops.CanalNetworkingSpec, fldPa
 	if v.IptablesBackend != "" {
 		valid := []string{"Auto", "Legacy", "NFT"}
 		allErrs = append(allErrs, IsValidValue(fldPath.Child("iptablesBackend"), &v.IptablesBackend, valid)...)
-	}
-
-	if c.IsKubernetesGTE("1.22") {
-		allErrs = append(allErrs, field.Forbidden(fldPath, "Canal is supported only for Kubernetes 1.21 and lower"))
 	}
 
 	return allErrs
@@ -1410,7 +1404,7 @@ func validateNvidiaConfig(spec *kops.ClusterSpec, nvidia *kops.NvidiaGPUConfig, 
 	if kops.CloudProviderID(spec.CloudProvider) != kops.CloudProviderAWS {
 		allErrs = append(allErrs, field.Forbidden(fldPath, "Nvidia is only supported on AWS"))
 	}
-	if spec.ContainerRuntime != "containerd" {
+	if spec.ContainerRuntime != "" && spec.ContainerRuntime != "containerd" {
 		allErrs = append(allErrs, field.Forbidden(fldPath, "Nvidia is only supported using containerd"))
 	}
 	return allErrs

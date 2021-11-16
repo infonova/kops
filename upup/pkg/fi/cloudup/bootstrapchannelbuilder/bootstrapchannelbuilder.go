@@ -458,8 +458,13 @@ func (b *BootstrapChannelBuilder) buildAddons(c *fi.ModelBuilderContext) (*chann
 			key := "external-dns.addons.k8s.io"
 
 			{
-				location := key + "/k8s-1.12.yaml"
-				id := "k8s-1.12"
+				location := key + "/k8s-1.19.yaml"
+				id := "k8s-1.19"
+
+				if b.IsKubernetesLT("1.19") {
+					location = key + "/k8s-1.12.yaml"
+					id = "k8s-1.12"
+				}
 
 				addons.Spec.Addons = append(addons.Spec.Addons, &channelsapi.AddonSpec{
 					Name:     fi.String(key),
@@ -787,7 +792,17 @@ func (b *BootstrapChannelBuilder) buildAddons(c *fi.ModelBuilderContext) (*chann
 	if b.Cluster.Spec.Networking.Canal != nil {
 		key := "networking.projectcalico.org.canal"
 
-		{
+		if b.IsKubernetesGTE("v1.22.0") {
+			id := "k8s-1.22"
+			location := key + "/" + id + ".yaml"
+
+			addons.Spec.Addons = append(addons.Spec.Addons, &channelsapi.AddonSpec{
+				Name:     fi.String(key),
+				Selector: networkingSelector(),
+				Manifest: fi.String(location),
+				Id:       id,
+			})
+		} else {
 			id := "k8s-1.16"
 			location := key + "/" + id + ".yaml"
 

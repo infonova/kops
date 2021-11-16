@@ -38,7 +38,7 @@ const (
 				"Service": ["events.amazonaws.com", "sqs.amazonaws.com"]
 			},
 			"Action": "sqs:SendMessage",
-			"Resource": "arn:aws:sqs:{{ AWS_REGION }}:{{ ACCOUNT_ID }}:{{ SQS_QUEUE_NAME }}"
+			"Resource": "arn:{{ AWS_PARTITION }}:sqs:{{ AWS_REGION }}:{{ ACCOUNT_ID }}:{{ SQS_QUEUE_NAME }}"
 		}]
 	}`
 	DefaultMessageRetentionPeriod = 300
@@ -121,6 +121,7 @@ func (b *NodeTerminationHandlerBuilder) configureASG(c *fi.ModelBuilderContext, 
 func (b *NodeTerminationHandlerBuilder) buildSQSQueue(c *fi.ModelBuilderContext) error {
 	queueName := model.QueueNamePrefix(b.ClusterName()) + "-nth"
 	policy := strings.ReplaceAll(NTHTemplate, "{{ AWS_REGION }}", b.Region)
+	policy = strings.ReplaceAll(policy, "{{ AWS_PARTITION }}", b.AWSPartition)
 	policy = strings.ReplaceAll(policy, "{{ ACCOUNT_ID }}", b.AWSAccountID)
 	policy = strings.ReplaceAll(policy, "{{ SQS_QUEUE_NAME }}", queueName)
 
@@ -140,9 +141,10 @@ func (b *NodeTerminationHandlerBuilder) buildSQSQueue(c *fi.ModelBuilderContext)
 func (b *NodeTerminationHandlerBuilder) buildEventBridgeRules(c *fi.ModelBuilderContext) error {
 	clusterName := b.ClusterName()
 	queueName := model.QueueNamePrefix(clusterName) + "-nth"
+	partition := b.AWSPartition
 	region := b.Region
 	accountID := b.AWSAccountID
-	targetArn := "arn:aws:sqs:" + region + ":" + accountID + ":" + queueName
+	targetArn := "arn:" + partition + ":sqs:" + region + ":" + accountID + ":" + queueName
 
 	clusterNamePrefix := awsup.GetClusterName40(clusterName)
 	for _, event := range events {
