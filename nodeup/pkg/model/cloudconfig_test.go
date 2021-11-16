@@ -18,7 +18,7 @@ package model
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"reflect"
 	"testing"
 
@@ -86,7 +86,7 @@ func TestBuildAzure(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
@@ -125,7 +125,7 @@ func TestBuildAWSCustomNodeIPFamilies(t *testing.T) {
 			ExternalCloudControllerManager: &kops.CloudControllerManagerConfig{
 				CloudProvider: string(kops.CloudProviderAWS),
 			},
-			NonMasqueradeCIDR: "fd00:10:96::/64",
+			NonMasqueradeCIDR: "::/0",
 		},
 	}
 
@@ -154,7 +154,7 @@ func TestBuildAWSCustomNodeIPFamilies(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}
-	awsCloudConfig, err := ioutil.ReadAll(r)
+	awsCloudConfig, err := io.ReadAll(r)
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
 	}

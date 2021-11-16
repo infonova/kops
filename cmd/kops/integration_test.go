@@ -27,7 +27,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"reflect"
@@ -168,11 +167,24 @@ func (i *integrationTest) withAddons(addons ...string) *integrationTest {
 }
 
 const dnsControllerAddon = "dns-controller.addons.k8s.io-k8s-1.12"
+const awsCCMAddon = "aws-cloud-controller.addons.k8s.io-k8s-1.18"
+const awsEBSCSIAddon = "aws-ebs-csi-driver.addons.k8s.io-k8s-1.17"
 
 // TestMinimal runs the test on a minimum configuration, similar to kops create cluster minimal.example.com --zones us-west-1a
 func TestMinimal(t *testing.T) {
 	newIntegrationTest("minimal.example.com", "minimal").
 		withAddons(dnsControllerAddon).
+		runTestTerraformAWS(t)
+	newIntegrationTest("minimal.example.com", "minimal").runTestCloudformation(t)
+}
+
+// TestMinimal runs the test on a minimum configuration
+func TestMinimal_v1_23(t *testing.T) {
+	newIntegrationTest("minimal.example.com", "minimal-1.23").
+		withAddons(
+			awsEBSCSIAddon,
+			dnsControllerAddon,
+		).
 		runTestTerraformAWS(t)
 	newIntegrationTest("minimal.example.com", "minimal").runTestCloudformation(t)
 }
@@ -184,6 +196,7 @@ func TestNvidia(t *testing.T) {
 			"nvidia.addons.k8s.io-k8s-1.16",
 		).
 		runTestTerraformAWS(t)
+	newIntegrationTest("minimal.example.com", "nvidia").runTestCloudformation(t)
 }
 
 // TestMinimal runs the test on a minimum gossip configuration
@@ -247,24 +260,38 @@ func TestExternalPolicies(t *testing.T) {
 		runTestTerraformAWS(t)
 }
 
-// TestMinimalIPv6 runs the test on a minimum IPv6 configuration, similar to kops create cluster minimal.example.com --zones us-west-1a
+// TestMinimalIPv6 runs the test on a minimum IPv6 configuration
 func TestMinimalIPv6(t *testing.T) {
 	newIntegrationTest("minimal-ipv6.example.com", "minimal-ipv6").
-		withAddons(dnsControllerAddon).
+		withAddons(awsCCMAddon, awsEBSCSIAddon, dnsControllerAddon).
 		runTestTerraformAWS(t)
 	newIntegrationTest("minimal-ipv6.example.com", "minimal-ipv6").runTestCloudformation(t)
 }
 
-// TestIPv6CloudIPAM runs the test on a minimum IPv6 configuration, similar to kops create cluster minimal.example.com --zones us-west-1a
-func TestIPv6CloudIPAM(t *testing.T) {
+// TestMinimalIPv6Calico runs the test on a minimum IPv6 configuration with Calico
+func TestMinimalIPv6Calico(t *testing.T) {
 	featureflag.ParseFlags("+AWSIPv6")
 	unsetFeatureFlags := func() {
 		featureflag.ParseFlags("-AWSIPv6")
 	}
 	defer unsetFeatureFlags()
-	newIntegrationTest("minimal-ipv6.example.com", "ipv6-cloudipam").
-		withAddons(dnsControllerAddon).
+	newIntegrationTest("minimal-ipv6.example.com", "minimal-ipv6-calico").
+		withAddons(awsCCMAddon, awsEBSCSIAddon, calicoAddon, dnsControllerAddon).
 		runTestTerraformAWS(t)
+	newIntegrationTest("minimal-ipv6.example.com", "minimal-ipv6-calico").runTestCloudformation(t)
+}
+
+// TestMinimalIPv6Calico runs the test on a minimum IPv6 configuration with Cilium
+func TestMinimalIPv6Cilium(t *testing.T) {
+	featureflag.ParseFlags("+AWSIPv6")
+	unsetFeatureFlags := func() {
+		featureflag.ParseFlags("-AWSIPv6")
+	}
+	defer unsetFeatureFlags()
+	newIntegrationTest("minimal-ipv6.example.com", "minimal-ipv6-cilium").
+		withAddons(awsCCMAddon, awsEBSCSIAddon, ciliumAddon, dnsControllerAddon).
+		runTestTerraformAWS(t)
+	newIntegrationTest("minimal-ipv6.example.com", "minimal-ipv6-cilium").runTestCloudformation(t)
 }
 
 // TestMinimalWarmPool runs the test on a minimum Warm Pool configuration
@@ -326,11 +353,13 @@ func TestPrivateFlannel(t *testing.T) {
 		runTestTerraformAWS(t)
 }
 
+const calicoAddon = "networking.projectcalico.org-k8s-1.16"
+
 // TestPrivateCalico runs the test on a configuration with private topology, calico networking
 func TestPrivateCalico(t *testing.T) {
 	newIntegrationTest("privatecalico.example.com", "privatecalico").
 		withPrivate().
-		withAddons("networking.projectcalico.org-k8s-1.16", dnsControllerAddon).
+		withAddons(calicoAddon, dnsControllerAddon).
 		runTestTerraformAWS(t)
 	newIntegrationTest("privatecalico.example.com", "privatecalico").
 		withPrivate().
@@ -377,7 +406,7 @@ func TestPrivateCiliumAdvanced(t *testing.T) {
 func TestPrivateCanal(t *testing.T) {
 	newIntegrationTest("privatecanal.example.com", "privatecanal").
 		withPrivate().
-		withAddons("networking.projectcalico.org.canal-k8s-1.16", dnsControllerAddon).
+		withAddons("networking.projectcalico.org.canal-k8s-1.22", "aws-ebs-csi-driver.addons.k8s.io-k8s-1.17", dnsControllerAddon).
 		runTestTerraformAWS(t)
 }
 
@@ -520,14 +549,15 @@ func TestCCM(t *testing.T) {
 
 func TestExternalDNS(t *testing.T) {
 	newIntegrationTest("minimal.example.com", "external_dns").
-		withAddons("external-dns.addons.k8s.io-k8s-1.12").
+		withAddons("external-dns.addons.k8s.io-k8s-1.19").
 		runTestTerraformAWS(t)
+	newIntegrationTest("minimal.example.com", "external_dns").runTestCloudformation(t)
 }
 
 func TestExternalDNSIRSA(t *testing.T) {
 	newIntegrationTest("minimal.example.com", "external_dns_irsa").
 		withOIDCDiscovery().
-		withAddons("external-dns.addons.k8s.io-k8s-1.12").
+		withAddons("external-dns.addons.k8s.io-k8s-1.19").
 		withServiceAccountRole("external-dns.kube-system", true).
 		runTestTerraformAWS(t)
 }
@@ -712,7 +742,7 @@ func (i *integrationTest) runTest(t *testing.T, h *testutils.IntegrationTestHarn
 
 	// Compare main files
 	{
-		files, err := ioutil.ReadDir(path.Join(h.TempDir, "out"))
+		files, err := os.ReadDir(path.Join(h.TempDir, "out"))
 		if err != nil {
 			t.Fatalf("failed to read dir: %v", err)
 		}
@@ -734,7 +764,7 @@ func (i *integrationTest) runTest(t *testing.T, h *testutils.IntegrationTestHarn
 			t.Fatalf("unexpected files.  actual=%q, expected=%q, test=%q", actualFilenames, expectedFilenames, testDataTFPath)
 		}
 
-		actualTF, err := ioutil.ReadFile(path.Join(h.TempDir, "out", actualTFPath))
+		actualTF, err := os.ReadFile(path.Join(h.TempDir, "out", actualTFPath))
 		if err != nil {
 			t.Fatalf("unexpected error reading actual terraform output: %v", err)
 		}
@@ -745,7 +775,7 @@ func (i *integrationTest) runTest(t *testing.T, h *testutils.IntegrationTestHarn
 	// Compare data files if they are provided
 	if len(expectedDataFilenames) > 0 {
 		actualDataPath := path.Join(h.TempDir, "out", "data")
-		files, err := ioutil.ReadDir(actualDataPath)
+		files, err := os.ReadDir(actualDataPath)
 		if err != nil {
 			t.Fatalf("failed to read data dir: %v", err)
 		}
@@ -777,11 +807,26 @@ func (i *integrationTest) runTest(t *testing.T, h *testutils.IntegrationTestHarn
 		{
 			for _, dataFileName := range expectedDataFilenames {
 				actualDataContent, err :=
-					ioutil.ReadFile(path.Join(actualDataPath, dataFileName))
+					os.ReadFile(path.Join(actualDataPath, dataFileName))
 				if err != nil {
 					t.Fatalf("failed to read actual data file: %v", err)
 				}
 				golden.AssertMatchesFile(t, string(actualDataContent), path.Join(expectedDataPath, dataFileName))
+			}
+		}
+
+		existingExpectedFiles, err := os.ReadDir(expectedDataPath)
+		if err != nil {
+			t.Fatalf("failed to read data dir: %v", err)
+		}
+		existingExpectedFilenames := make([]string, len(existingExpectedFiles))
+		for i, f := range existingExpectedFiles {
+			existingExpectedFilenames[i] = f.Name()
+		}
+		for j := 0; j < len(existingExpectedFilenames) && j < len(expectedDataFilenames); j++ {
+			if existingExpectedFilenames[j] != expectedDataFilenames[j] {
+				t.Errorf("diff with source directory @%d: %q vs %q", j, existingExpectedFilenames[j], expectedDataFilenames[j])
+				break
 			}
 		}
 	}
@@ -1167,7 +1212,7 @@ func (i *integrationTest) runTestCloudformation(t *testing.T) {
 
 	// Compare main files
 	{
-		files, err := ioutil.ReadDir(path.Join(h.TempDir, "out"))
+		files, err := os.ReadDir(path.Join(h.TempDir, "out"))
 		if err != nil {
 			t.Fatalf("failed to read dir: %v", err)
 		}
@@ -1185,7 +1230,7 @@ func (i *integrationTest) runTestCloudformation(t *testing.T) {
 		}
 
 		actualPath := path.Join(h.TempDir, "out", "kubernetes.json")
-		actualCF, err := ioutil.ReadFile(actualPath)
+		actualCF, err := os.ReadFile(actualPath)
 		if err != nil {
 			t.Fatalf("unexpected error reading actual cloudformation output: %v", err)
 		}
@@ -1260,7 +1305,7 @@ func MakeSSHKeyPair(publicKeyPath string, privateKeyPath string) error {
 	if err := pem.Encode(&privateKeyBytes, privateKeyPEM); err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(privateKeyPath, privateKeyBytes.Bytes(), os.FileMode(0700)); err != nil {
+	if err := os.WriteFile(privateKeyPath, privateKeyBytes.Bytes(), os.FileMode(0700)); err != nil {
 		return err
 	}
 
@@ -1269,7 +1314,7 @@ func MakeSSHKeyPair(publicKeyPath string, privateKeyPath string) error {
 		return err
 	}
 	publicKeyBytes := ssh.MarshalAuthorizedKey(publicKey)
-	if err := ioutil.WriteFile(publicKeyPath, publicKeyBytes, os.FileMode(0744)); err != nil {
+	if err := os.WriteFile(publicKeyPath, publicKeyBytes, os.FileMode(0744)); err != nil {
 		return err
 	}
 

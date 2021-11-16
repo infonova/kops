@@ -17,7 +17,7 @@ limitations under the License.
 package cloudup
 
 import (
-	"io/ioutil"
+	"os"
 	"path"
 	"testing"
 
@@ -50,7 +50,8 @@ func TestBootstrapChannelBuilder_BuildTasks(t *testing.T) {
 	runChannelBuilderTest(t, "weave", []string{})
 	runChannelBuilderTest(t, "amazonvpc", []string{"networking.amazon-vpc-routed-eni-k8s-1.16"})
 	runChannelBuilderTest(t, "amazonvpc-containerd", []string{"networking.amazon-vpc-routed-eni-k8s-1.16"})
-	runChannelBuilderTest(t, "awsiamauthenticator", []string{"authentication.aws-k8s-1.12"})
+	runChannelBuilderTest(t, "awsiamauthenticator/crd", []string{"authentication.aws-k8s-1.12"})
+	runChannelBuilderTest(t, "awsiamauthenticator/mappings", []string{"authentication.aws-k8s-1.12"})
 	runChannelBuilderTest(t, "metrics-server/insecure-1.18", []string{"metrics-server.addons.k8s.io-k8s-1.11"})
 	runChannelBuilderTest(t, "metrics-server/insecure-1.19", []string{"metrics-server.addons.k8s.io-k8s-1.11"})
 	runChannelBuilderTest(t, "metrics-server/secure-1.18", []string{"metrics-server.addons.k8s.io-k8s-1.11"})
@@ -85,7 +86,7 @@ func runChannelBuilderTest(t *testing.T, key string, addonManifests []string) {
 	basedir := path.Join("tests/bootstrapchannelbuilder/", key)
 
 	clusterYamlPath := path.Join(basedir, "cluster.yaml")
-	clusterYaml, err := ioutil.ReadFile(clusterYamlPath)
+	clusterYaml, err := os.ReadFile(clusterYamlPath)
 	if err != nil {
 		t.Fatalf("error reading cluster yaml file %q: %v", clusterYamlPath, err)
 	}

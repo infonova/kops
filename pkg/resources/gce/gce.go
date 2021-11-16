@@ -43,6 +43,7 @@ const (
 	typeForwardingRule       = "ForwardingRule"
 	typeAddress              = "Address"
 	typeRoute                = "Route"
+	typeNetwork              = "Network"
 	typeSubnet               = "Subnet"
 	typeRouter               = "Router"
 	typeDNSRecord            = "DNSRecord"
@@ -51,6 +52,9 @@ const (
 // Maximum number of `-` separated tokens in a name
 // Example: nodeport-external-to-node-ipv6
 const maxPrefixTokens = 5
+
+// Maximum length of a GCE route name
+const maxGCERouteNameLength = 63
 
 func ListResourcesGCE(gceCloud gce.GCECloud, clusterName string, region string) (map[string]*resources.Resource, error) {
 	if region == "" {
@@ -99,6 +103,7 @@ func ListResourcesGCE(gceCloud gce.GCECloud, clusterName string, region string) 
 		d.listAddresses,
 		d.listSubnets,
 		d.listRouters,
+		d.listNetworks,
 	}
 	for _, fn := range listFunctions {
 		resourceTrackers, err := fn()
@@ -564,17 +569,15 @@ func (d *clusterDiscoveryGCE) listRoutes(resourceMap map[string]*resources.Resou
 		}
 	}
 
-	prefix := gce.SafeClusterName(d.clusterName) + "-"
-
 	ctx := context.Background()
 
 	// TODO: Push-down prefix?
 	routes, err := c.Compute().Routes().List(ctx, c.Project())
 	if err != nil {
-		return nil, fmt.Errorf("error listing Routes: %v", err)
+		return nil, fmt.Errorf("error listing Routes: %w", err)
 	}
 	for _, r := range routes {
-		if !strings.HasPrefix(r.Name, prefix) {
+		if !d.matchesClusterNameWithUUID(r.Name, maxGCERouteNameLength) {
 			continue
 		}
 		remove := false
@@ -741,6 +744,8 @@ func (d *clusterDiscoveryGCE) listSubnets() ([]*resources.Resource, error) {
 			Obj:     o,
 		}
 
+		resourceTracker.Blocks = append(resourceTracker.Blocks, typeNetwork+":"+gce.LastComponent(o.Network))
+
 		klog.V(4).Infof("found resource: %s", o.SelfLink)
 		resourceTrackers = append(resourceTrackers, resourceTracker)
 	}
@@ -824,6 +829,78 @@ func deleteRouter(cloud fi.Cloud, r *resources.Resource) error {
 	return c.WaitForOp(op)
 }
 
+func (d *clusterDiscoveryGCE) listNetworks() ([]*resources.Resource, error) {
+	// Templates are very accurate because of the metadata, so use those as the sanity check
+	templates, err := d.findInstanceTemplates()
+	if err != nil {
+		return nil, err
+	}
+	networkUrls := make(map[string]bool)
+	for _, t := range templates {
+		for _, ni := range t.Properties.NetworkInterfaces {
+			if ni.Network != "" {
+				networkUrls[ni.Network] = true
+			}
+		}
+	}
+
+	c := d.gceCloud
+
+	var resourceTrackers []*resources.Resource
+
+	networks, err := c.Compute().Networks().List(c.Project())
+	if err != nil {
+		return nil, fmt.Errorf("error listing networks: %v", err)
+	}
+
+	for _, o := range networks.Items {
+		if o.Name != gce.SafeClusterName(d.clusterName) {
+			klog.V(8).Infof("skipping network with name %q", o.Name)
+			continue
+		}
+
+		if !networkUrls[o.SelfLink] {
+			klog.Warningf("skipping network %q because it didn't match any instance template", o.SelfLink)
+			continue
+		}
+
+		resourceTracker := &resources.Resource{
+			Name:    o.Name,
+			ID:      o.Name,
+			Type:    typeNetwork,
+			Deleter: deleteNetwork,
+			Obj:     o,
+		}
+
+		klog.V(4).Infof("found resource: %s", o.SelfLink)
+		resourceTrackers = append(resourceTrackers, resourceTracker)
+	}
+
+	return resourceTrackers, nil
+}
+
+func deleteNetwork(cloud fi.Cloud, r *resources.Resource) error {
+	c := cloud.(gce.GCECloud)
+	o := r.Obj.(*compute.Network)
+
+	klog.V(2).Infof("deleting GCE network %s", o.SelfLink)
+	u, err := gce.ParseGoogleCloudURL(o.SelfLink)
+	if err != nil {
+		return err
+	}
+
+	op, err := c.Compute().Networks().Delete(u.Project, u.Name)
+	if err != nil {
+		if gce.IsNotFound(err) {
+			klog.Infof("network not found, assuming deleted: %q", o.SelfLink)
+			return nil
+		}
+		return fmt.Errorf("error deleting network %s: %v", o.SelfLink, err)
+	}
+
+	return c.WaitForOp(op)
+}
+
 func (d *clusterDiscoveryGCE) matchesClusterName(name string) bool {
 	// Names could have hypens in them, so really there is no limit.
 	// 8 hyphens feels like enough for any "reasonable" name
@@ -851,6 +928,26 @@ func (d *clusterDiscoveryGCE) matchesClusterNameMultipart(name string, maxParts 
 		}
 	}
 	return false
+}
+
+// matchesClusterNameWithUUID checks if the name is the clusterName with a UUID on the end.
+// This is used by GCE routes (in "classic" mode)
+func (d *clusterDiscoveryGCE) matchesClusterNameWithUUID(name string, maxLength int) bool {
+	const uuidLength = 36 // e.g. 51a343e2-c285-4e73-b933-18a6ea44c3e4
+
+	// Format is <cluster-name>-<uuid>
+	// <cluster-name> is truncated to ensure it fits into the GCE max length
+	if len(name) < uuidLength {
+		return false
+	}
+	withoutUUID := name[:len(name)-uuidLength]
+
+	clusterPrefix := gce.SafeClusterName(d.clusterName) + "-"
+	if len(clusterPrefix) > maxLength-uuidLength {
+		clusterPrefix = gce.SafeClusterName(d.clusterName)[:maxLength-uuidLength-1] + "-"
+	}
+
+	return clusterPrefix == withoutUUID
 }
 
 func (d *clusterDiscoveryGCE) clusterDNSName() string {

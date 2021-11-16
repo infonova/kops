@@ -140,13 +140,18 @@ data:
   # backend and affinity maps. (default 65536)
   bpf-lb-map-max: "{{ .BPFLBMapMax }}"
 
+  # bpf-lb-sock-hostns-only enables skipping socket LB for services when inside a pod namespace,
+  # in favor of service LB at the pod interface. Socket LB is still used when in the host namespace.
+  # Required by service mesh (e.g., Istio, Linkerd). (default false)
+  bpf-lb-sock-hostns-only: "{{ .BPFLBSockHostNSOnly }}"
+
   {{ if .ChainingMode }}
   cni-chaining-mode: "{{ .ChainingMode }}"
   {{ end }}
 
   # enable-bpf-masquerade enables masquerading packets from endpoints leaving
   # the host with BPF instead of iptables. (default false)
-  enable-bpf-masquerade: "{{ .EnableBPFMasquerade }}"
+  enable-bpf-masquerade: "{{ and (WithDefaultBool .EnableBPFMasquerade false) (not IsIPv6Only) }}"
 
   # Pre-allocation of map entries allows per-packet latency to be reduced, at
   # the expense of up-front memory allocation for the entries in the maps. The
@@ -216,9 +221,8 @@ data:
   # - none
   # - auto (automatically detect the container runtime)
   #
-  container-runtime: "{{ .ContainerRuntimeLabels }}"
-  masquerade: "{{- if WithDefaultBool .DisableMasquerade false -}}false{{- else -}}true{{- end -}}"
-  enable-ipv6-masquerade: "{{- if WithDefaultBool .DisableMasquerade false -}}false{{- else -}}true{{- end -}}"
+  masquerade: "{{- not (or IsIPv6Only (WithDefaultBool .DisableMasquerade false) ) -}}"
+  enable-ipv6-masquerade: "false"
   install-iptables-rules: "{{- if .IPTablesRulesNoinstall -}}false{{- else -}}true{{- end -}}"
   auto-direct-node-routes: "{{ .AutoDirectNodeRoutes }}"
   {{ if .EnableHostReachableServices }}
@@ -249,6 +253,8 @@ data:
   enable-l7-proxy: "{{ .EnableL7Proxy }}"
 
   cgroup-root: /run/cilium/cgroupv2
+
+  disable-cnp-status-updates: "{{ .DisableCNPStatusUpdates }}"
 
   {{ if WithDefaultBool .Hubble.Enabled false }}
   # Enable Hubble gRPC service.
@@ -585,7 +591,7 @@ spec:
         # Annotation required for prometheus auto-discovery scraping
         # https://docs.cilium.io/en/v1.9/operations/metrics/#installation
         prometheus.io/scrape: "true"
-        prometheus.io/port: {{ printf "%q" .AgentPrometheusPort }}
+        prometheus.io/port: "{{ .AgentPrometheusPort }}"
         {{ end }}
 {{- with .AgentPodAnnotations }}
         {{- . | nindent 8 }}

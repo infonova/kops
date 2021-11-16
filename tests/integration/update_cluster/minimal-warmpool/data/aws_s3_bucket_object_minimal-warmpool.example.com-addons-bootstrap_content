@@ -6,7 +6,7 @@ spec:
   addons:
   - id: k8s-1.16
     manifest: kops-controller.addons.k8s.io/k8s-1.16.yaml
-    manifestHash: fd59dd28e76843ba6b336988b4a2aa610ce4307f073271f2b45fed44bcf9cb00
+    manifestHash: 9b295bd16e325a5641067f06b198854040c1c0c02d1ca6eb46cf7327d7661d32
     name: kops-controller.addons.k8s.io
     needsRollingUpdate: control-plane
     selector:
@@ -40,7 +40,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.12
     manifest: dns-controller.addons.k8s.io/k8s-1.12.yaml
-    manifestHash: 08d576cf7e30936c5a077d9d8439f1a7a1245e737722faa477eb734e87b292aa
+    manifestHash: 18b8c3c01f75a7304edc12dcb57216cb19fc97cd4a92e05f5c353cde5920f015
     name: dns-controller.addons.k8s.io
     selector:
       k8s-addon: dns-controller.addons.k8s.io
@@ -54,7 +54,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.16
     manifest: networking.cilium.io/k8s-1.16-v1.10.yaml
-    manifestHash: 1703cd96b5c8d24e70cc30e81b011e9f6392a2df4e3a714bccb03b0a9a824f0e
+    manifestHash: 3560289593c612da551bb62ce4e04c12ff4524d0a58d90d6def8df5d05a4298e
     name: networking.cilium.io
     needsRollingUpdate: all
     selector:

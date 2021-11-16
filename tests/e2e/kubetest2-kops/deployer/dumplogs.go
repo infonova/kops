@@ -29,6 +29,11 @@ import (
 )
 
 func (d *deployer) DumpClusterLogs() error {
+	yamlFile, err := os.Create(path.Join(d.ArtifactsDir, "toolbox-dump.yaml"))
+	if err != nil {
+		panic(err)
+	}
+	defer yamlFile.Close()
 
 	args := []string{
 		d.KopsBinaryPath, "toolbox", "dump",
@@ -40,7 +45,8 @@ func (d *deployer) DumpClusterLogs() error {
 	klog.Info(strings.Join(args, " "))
 	cmd := exec.Command(args[0], args[1:]...)
 	cmd.SetEnv(d.env()...)
-	if err := runWithOutput(cmd); err != nil {
+	cmd.SetStdout(yamlFile)
+	if err := cmd.Run(); err != nil {
 		return err
 	}
 
@@ -95,6 +101,72 @@ func (d *deployer) dumpClusterInfo() error {
 	if err := cmd.Run(); err != nil {
 		if err = d.dumpClusterInfoSSH(); err != nil {
 			return err
+		}
+	}
+
+	resourceTypes := []string{"csinodes", "csidrivers", "storageclasses", "persistentvolumes",
+		"mutatingwebhookconfigurations", "validatingwebhookconfigurations"}
+	if err := os.MkdirAll(path.Join(d.ArtifactsDir, "cluster-info"), 0755); err != nil {
+		return err
+	}
+	for _, resType := range resourceTypes {
+		yamlFile, err := os.Create(path.Join(d.ArtifactsDir, "cluster-info", fmt.Sprintf("%v.yaml", resType)))
+		if err != nil {
+			return err
+		}
+		defer yamlFile.Close()
+
+		args = []string{
+			"kubectl", "--request-timeout", "5s", "get", resType,
+			"--all-namespaces",
+			"-o", "yaml",
+		}
+		klog.Info(strings.Join(args, " "))
+
+		cmd := exec.Command(args[0], args[1:]...)
+		cmd.SetEnv(d.env()...)
+		cmd.SetStdout(yamlFile)
+		if err := cmd.Run(); err != nil {
+			klog.Warningf("Failed to get %v: %v", resType, err)
+		}
+	}
+
+	nsCmd := exec.Command(
+		"kubectl", "--request-timeout", "5s", "get", "namespaces", "--no-headers", "-o", "custom-columns=name:.metadata.name",
+	)
+	namespaces, err := exec.OutputLines(nsCmd)
+	if err != nil {
+		return fmt.Errorf("failed to get namespaces: %s", err)
+	}
+
+	namespacedResourceTypes := []string{"configmaps", "endpoints", "endpointslices", "leases", "persistentvolumeclaims"}
+	for _, namespace := range namespaces {
+		namespace = strings.TrimSpace(namespace)
+		if err := os.MkdirAll(path.Join(d.ArtifactsDir, "cluster-info", namespace), 0755); err != nil {
+			return err
+		}
+		for _, resType := range namespacedResourceTypes {
+			yamlFile, err := os.Create(path.Join(d.ArtifactsDir, "cluster-info", namespace, fmt.Sprintf("%v.yaml", resType)))
+			if err != nil {
+				return err
+			}
+			defer yamlFile.Close()
+
+			args = []string{
+				"kubectl", "get", resType,
+				"-n", namespace,
+				"-o", "yaml",
+			}
+			klog.Info(strings.Join(args, " "))
+
+			cmd := exec.Command(args[0], args[1:]...)
+			cmd.SetEnv(d.env()...)
+			cmd.SetStdout(yamlFile)
+			if err := cmd.Run(); err != nil {
+				if err = d.dumpClusterInfoSSH(); err != nil {
+					klog.Warningf("Failed to get %v: %v", resType, err)
+				}
+			}
 		}
 	}
 	return nil

@@ -32,19 +32,20 @@ data:
   bpf-lb-algorithm: random
   bpf-lb-maglev-table-size: "16381"
   bpf-lb-map-max: "65536"
+  bpf-lb-sock-hostns-only: "false"
   bpf-nat-global-max: "524288"
   bpf-neigh-global-max: "524288"
   bpf-policy-map-max: "16384"
   cgroup-root: /run/cilium/cgroupv2
   cluster-name: default
-  container-runtime: none
   debug: "false"
+  disable-cnp-status-updates: "true"
   disable-endpoint-crd: "false"
   enable-bpf-masquerade: "false"
   enable-endpoint-health-checking: "true"
   enable-ipv4: "true"
   enable-ipv6: "false"
-  enable-ipv6-masquerade: "true"
+  enable-ipv6-masquerade: "false"
   enable-l7-proxy: "true"
   enable-node-port: "false"
   enable-remote-node-identity: "true"

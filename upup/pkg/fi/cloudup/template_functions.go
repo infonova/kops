@@ -162,6 +162,12 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 			for _, e := range c.Env {
 				envVars[e.Name] = e.Value
 			}
+			envVars["ENABLE_IPv4"] = strconv.FormatBool(!cluster.Spec.IsIPv6Only())
+			envVars["ENABLE_IPv6"] = strconv.FormatBool(cluster.Spec.IsIPv6Only())
+			if cluster.Spec.IsIPv6Only() {
+				envVars["ENABLE_PREFIX_DELEGATION"] = "true"
+				envVars["WARM_PREFIX_TARGET"] = "1"
+			}
 			return envVars
 		}
 	}
@@ -478,6 +484,13 @@ func (tf *TemplateFunctions) DNSControllerArgv() ([]string, error) {
 			argv = append(argv, "--zone=*/"+zone)
 		}
 	}
+
+	if cluster.Spec.IsIPv6Only() {
+		argv = append(argv, "--internal-ipv6")
+	} else {
+		argv = append(argv, "--internal-ipv4")
+	}
+
 	// permit wildcard updates
 	argv = append(argv, "--zone=*/*")
 	// Verbose, but not crazy logging
@@ -569,7 +582,7 @@ func (tf *TemplateFunctions) KopsControllerConfig() (string, error) {
 		}
 	}
 
-	if tf.Cluster.Spec.PodCIDRFromCloud {
+	if tf.Cluster.Spec.IsKopsControllerIPAM() {
 		config.EnableCloudIPAM = true
 	}
 
@@ -616,7 +629,7 @@ func (tf *TemplateFunctions) ExternalDNSArgv() ([]string, error) {
 	}
 
 	argv = append(argv, "--events")
-	if fi.BoolValue(externalDNS.WatchIngress) {
+	if externalDNS.WatchIngress == nil || *externalDNS.WatchIngress {
 		argv = append(argv, "--source=ingress")
 	}
 	argv = append(argv, "--source=pod")

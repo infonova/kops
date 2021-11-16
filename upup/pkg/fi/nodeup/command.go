@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/url"
 	"os"
@@ -34,6 +33,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/kms"
 	"k8s.io/kops/nodeup/pkg/model"
+	"k8s.io/kops/nodeup/pkg/model/dns"
 	"k8s.io/kops/nodeup/pkg/model/networking"
 	api "k8s.io/kops/pkg/apis/kops"
 	"k8s.io/kops/pkg/apis/kops/registry"
@@ -300,6 +300,7 @@ func (c *NodeUpCommand) Run(out io.Writer) error {
 	}
 
 	loader := &Loader{}
+	loader.Builders = append(loader.Builders, &dns.GossipBuilder{NodeupModelContext: modelContext})
 	loader.Builders = append(loader.Builders, &model.NTPBuilder{NodeupModelContext: modelContext})
 	loader.Builders = append(loader.Builders, &model.MiscUtilsBuilder{NodeupModelContext: modelContext})
 	loader.Builders = append(loader.Builders, &model.DirectoryBuilder{NodeupModelContext: modelContext})
@@ -664,7 +665,7 @@ func evaluateDockerSpecStorage(spec *api.DockerConfig) error {
 
 // kernelHasFilesystem checks if /proc/filesystems contains the specified filesystem
 func kernelHasFilesystem(fs string) (bool, error) {
-	contents, err := ioutil.ReadFile("/proc/filesystems")
+	contents, err := os.ReadFile("/proc/filesystems")
 	if err != nil {
 		return false, fmt.Errorf("error reading /proc/filesystems: %v", err)
 	}

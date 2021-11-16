@@ -17,6 +17,9 @@ limitations under the License.
 package wellknownports
 
 const (
+	// KubeAPIServer is the port where kube-apiserver listens.
+	KubeAPIServer = 443
+
 	// KopsControllerPort is the port where kops-controller listens.
 	KopsControllerPort = 3988
 
@@ -63,6 +66,9 @@ const (
 
 	// CiliumHubblePrometheusPort is the default port where Hubble exposes metrics
 	CiliumHubblePrometheusPort = 9091
+
+	// VxlanUDP is the port used by VXLAN tunneling over UDP
+	VxlanUDP = 8472
 )
 
 type PortRange struct {
