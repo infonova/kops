@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/blang/semver/v4"
@@ -312,6 +313,7 @@ type openstackCloud struct {
 	zones           []string
 	floatingEnabled bool
 	useVIPACL       *bool
+	mutex           sync.Mutex
 }
 
 var _ fi.Cloud = &openstackCloud{}
