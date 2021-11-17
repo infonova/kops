@@ -32,17 +32,18 @@ import (
 )
 
 func (c *openstackCloud) CreateServerGroup(opt servergroups.CreateOptsBuilder) (*servergroups.ServerGroup, error) {
-	// TODO(sprietl): mutex + if server group exits -> return existing
+	// TODO(sprietl): mutex + if server group exists -> return existing
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 
-	// servergroups, err := os.osCloud.ListServerGroups(servergroups.ListOpts{})
-	servergroups, err := c.ListServerGroups(servergroups.ListOpts{})
+	serverGroups, err := c.ListServerGroups(servergroups.ListOpts{})
 	if err == nil {
 		return nil, err
 	}
 
-	name = servergroups.CreateOpts.(opt)
+	name := opt.(servergroups.CreateOpts).Name
 
-	for _, sg := range servergroups {
+	for _, sg := range serverGroups {
 		if name == sg.Name {
 			return &sg, nil
 		}
