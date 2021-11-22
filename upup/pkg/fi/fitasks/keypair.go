@@ -114,6 +114,19 @@ func (e *Keypair) Run(c *fi.Context) error {
 	if err != nil {
 		return err
 	}
+
+	// Expect the primary CA as the signer
+	// if e.Signer != nil {
+	if e.Type != "ca" {
+		// c.Keystore.FindPrimaryKeypair(*e.Signer.Name)
+		expectedSigner, err := c.Keystore.FindKeyset(*e.Signer.Name)
+		if err != nil {
+			klog.Warningf("Unable to find keyset for %s", fi.StringValue(e.Signer.Name))
+		} else {
+			e.Signer = &Keypair{Subject: pki.PkixNameToString(&expectedSigner.Primary.Certificate.Certificate.Issuer)}
+		}
+	}
+
 	return fi.DefaultDeltaRunMethod(e, c)
 }
 
