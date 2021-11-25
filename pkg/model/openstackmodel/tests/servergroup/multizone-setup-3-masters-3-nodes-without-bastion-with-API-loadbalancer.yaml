@@ -119,6 +119,7 @@ Role: Master
 SSHKey: kubernetes.cluster-ba_d8_85_a0_5b_50_b0_01_e0_b2_b0_ae_5d_f6_7a_d1
 SecurityGroups: null
 ServerGroup:
+  BackingSGName: cluster-master-a
   ClusterName: cluster
   ID: null
   IGName: master-a
@@ -194,6 +195,7 @@ Role: Master
 SSHKey: kubernetes.cluster-ba_d8_85_a0_5b_50_b0_01_e0_b2_b0_ae_5d_f6_7a_d1
 SecurityGroups: null
 ServerGroup:
+  BackingSGName: cluster-master-b
   ClusterName: cluster
   ID: null
   IGName: master-b
@@ -269,6 +271,7 @@ Role: Master
 SSHKey: kubernetes.cluster-ba_d8_85_a0_5b_50_b0_01_e0_b2_b0_ae_5d_f6_7a_d1
 SecurityGroups: null
 ServerGroup:
+  BackingSGName: cluster-master-c
   ClusterName: cluster
   ID: null
   IGName: master-c
@@ -347,6 +350,7 @@ Role: Node
 SSHKey: kubernetes.cluster-ba_d8_85_a0_5b_50_b0_01_e0_b2_b0_ae_5d_f6_7a_d1
 SecurityGroups: null
 ServerGroup:
+  BackingSGName: cluster-node-a
   ClusterName: cluster
   ID: null
   IGName: node-a
@@ -425,6 +429,7 @@ Role: Node
 SSHKey: kubernetes.cluster-ba_d8_85_a0_5b_50_b0_01_e0_b2_b0_ae_5d_f6_7a_d1
 SecurityGroups: null
 ServerGroup:
+  BackingSGName: cluster-node-b
   ClusterName: cluster
   ID: null
   IGName: node-b
@@ -503,6 +508,7 @@ Role: Node
 SSHKey: kubernetes.cluster-ba_d8_85_a0_5b_50_b0_01_e0_b2_b0_ae_5d_f6_7a_d1
 SecurityGroups: null
 ServerGroup:
+  BackingSGName: cluster-node-c
   ClusterName: cluster
   ID: null
   IGName: node-c
@@ -761,6 +767,7 @@ Pool:
   Name: master-public-name-https
 ProtocolPort: 443
 ServerGroup:
+  BackingSGName: cluster-master-a
   ClusterName: cluster
   ID: null
   IGName: master-a
@@ -794,6 +801,7 @@ Pool:
   Name: master-public-name-https
 ProtocolPort: 443
 ServerGroup:
+  BackingSGName: cluster-master-b
   ClusterName: cluster
   ID: null
   IGName: master-b
@@ -827,6 +835,7 @@ Pool:
   Name: master-public-name-https
 ProtocolPort: 443
 ServerGroup:
+  BackingSGName: cluster-master-c
   ClusterName: cluster
   ID: null
   IGName: master-c
@@ -1022,6 +1031,7 @@ Tags:
 - KopsName=port-node-c-1
 - KubernetesCluster=cluster
 ---
+BackingSGName: cluster-master-a
 ClusterName: cluster
 ID: null
 IGName: master-a
@@ -1031,6 +1041,7 @@ Name: cluster-master-a
 Policies:
 - anti-affinity
 ---
+BackingSGName: cluster-master-b
 ClusterName: cluster
 ID: null
 IGName: master-b
@@ -1040,6 +1051,7 @@ Name: cluster-master-b
 Policies:
 - anti-affinity
 ---
+BackingSGName: cluster-master-c
 ClusterName: cluster
 ID: null
 IGName: master-c
@@ -1049,6 +1061,7 @@ Name: cluster-master-c
 Policies:
 - anti-affinity
 ---
+BackingSGName: cluster-node-a
 ClusterName: cluster
 ID: null
 IGName: node-a
@@ -1058,6 +1071,7 @@ Name: cluster-node-a
 Policies:
 - anti-affinity
 ---
+BackingSGName: cluster-node-b
 ClusterName: cluster
 ID: null
 IGName: node-b
@@ -1067,6 +1081,7 @@ Name: cluster-node-b
 Policies:
 - anti-affinity
 ---
+BackingSGName: cluster-node-c
 ClusterName: cluster
 ID: null
 IGName: node-c
