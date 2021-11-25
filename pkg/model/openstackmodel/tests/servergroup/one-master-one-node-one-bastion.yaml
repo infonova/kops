@@ -85,6 +85,7 @@ Role: Bastion
 SSHKey: kubernetes.cluster-ba_d8_85_a0_5b_50_b0_01_e0_b2_b0_ae_5d_f6_7a_d1
 SecurityGroups: null
 ServerGroup:
+  BackingSGName: cluster-bastion
   ClusterName: cluster
   ID: null
   IGName: bastion
@@ -172,6 +173,7 @@ Role: Master
 SSHKey: kubernetes.cluster-ba_d8_85_a0_5b_50_b0_01_e0_b2_b0_ae_5d_f6_7a_d1
 SecurityGroups: null
 ServerGroup:
+  BackingSGName: cluster-master
   ClusterName: cluster
   ID: null
   IGName: master
@@ -244,6 +246,7 @@ Role: Node
 SSHKey: kubernetes.cluster-ba_d8_85_a0_5b_50_b0_01_e0_b2_b0_ae_5d_f6_7a_d1
 SecurityGroups: null
 ServerGroup:
+  BackingSGName: cluster-node
   ClusterName: cluster
   ID: null
   IGName: node
@@ -480,6 +483,7 @@ Tags:
 - KopsName=port-node-1
 - KubernetesCluster=cluster
 ---
+BackingSGName: cluster-bastion
 ClusterName: cluster
 ID: null
 IGName: bastion
@@ -489,6 +493,7 @@ Name: cluster-bastion
 Policies:
 - anti-affinity
 ---
+BackingSGName: cluster-master
 ClusterName: cluster
 ID: null
 IGName: master
@@ -498,6 +503,7 @@ Name: cluster-master
 Policies:
 - anti-affinity
 ---
+BackingSGName: cluster-node
 ClusterName: cluster
 ID: null
 IGName: node
