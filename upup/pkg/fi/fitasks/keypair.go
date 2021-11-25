@@ -127,6 +127,18 @@ func (e *Keypair) Run(c *fi.Context) error {
 		}
 	}
 
+// 	I1122 15:50:07.573817   34841 keypair.go:116] Keypair::Run e=*fitasks.Keypair {"Name":"kube-proxy","alternateNames":null,"Lifecycle":"Sync","Signer":{"Name":null,"alternateNames":null,"Lifecycle":"","Signer":null,"subject":"cn=kubernetes-ca,serial=7033397116297489408686233704","type":"","oldFormat":false},"subject":"cn=system:kube-proxy","type":"client","oldFormat":false}
+// panic: runtime error: invalid memory address or nil pointer dereference
+// [signal SIGSEGV: segmentation violation code=0x1 addr=0x0 pc=0x6a4888a]
+
+// goroutine 1541 [running]:
+// k8s.io/kops/upup/pkg/fi/fitasks.(*Keypair).Run(0xc0010433b0, 0xc000fa8960)
+//         /Users/stefan.prietl/Workspaces/kubernetes-stuff/kops/kops/upup/pkg/fi/fitasks/keypair.go:126 +0x10a
+// k8s.io/kops/upup/pkg/fi.(*executor).forkJoin.func1(0xc001389ce0, 0x5)
+//         /Users/stefan.prietl/Workspaces/kubernetes-stuff/kops/kops/upup/pkg/fi/executor.go:187 +0x2af
+// created by k8s.io/kops/upup/pkg/fi.(*executor).forkJoin
+//         /Users/stefan.prietl/Workspaces/kubernetes-stuff/kops/kops/upup/pkg/fi/executor.go:183 +0x85
+
 	return fi.DefaultDeltaRunMethod(e, c)
 }
 
