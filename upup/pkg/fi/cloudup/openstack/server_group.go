@@ -33,11 +33,12 @@ import (
 
 func (c *openstackCloud) CreateServerGroup(opt servergroups.CreateOptsBuilder) (*servergroups.ServerGroup, error) {
 	// TODO(sprietl): mutex + if server group exists -> return existing
+	klog.Infof("CreateServerGroup: %v", opt.(servergroups.CreateOpts))
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
 	serverGroups, err := c.ListServerGroups(servergroups.ListOpts{})
-	if err == nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -102,82 +103,112 @@ func listServerGroups(c OpenstackCloud, opts servergroups.ListOptsBuilder) ([]se
 }
 
 // matchInstanceGroup filters a list of instancegroups for recognized cloud groups
-func matchInstanceGroup(name string, clusterName string, instancegroups []*kops.InstanceGroup) (*kops.InstanceGroup, error) {
-	var instancegroup *kops.InstanceGroup
+func matchInstanceGroup(name string, clusterName string, instancegroups []*kops.InstanceGroup) ([]*kops.InstanceGroup, error) {
+	var results []*kops.InstanceGroup
+
 	for _, g := range instancegroups {
 		var groupName string
+		// var hasBackingSG bool
+		var backingGroupName string
 
 		switch g.Spec.Role {
 		case kops.InstanceGroupRoleMaster, kops.InstanceGroupRoleNode, kops.InstanceGroupRoleBastion:
+			groupName = clusterName + "-" + g.ObjectMeta.Name
 			if v, ok := g.ObjectMeta.Annotations[OS_ANNOTATION+BACKING_SERVER_GROUP_NAME]; ok {
-				groupName = clusterName + "-" + v
+				backingGroupName = clusterName + "-" + v
 			} else {
-				groupName = clusterName + "-" + g.ObjectMeta.Name
+				backingGroupName = ""
 			}
+
+			// if v, ok := g.ObjectMeta.Annotations[OS_ANNOTATION+BACKING_SERVER_GROUP_NAME]; ok {
+			// 	groupName = clusterName + "-" + v
+			// 	hasBackingSG = true
+			// } else {
+			// 	groupName = clusterName + "-" + g.ObjectMeta.Name
+			// 	hasBackingSG = false
+			// }
 		default:
 			klog.Warningf("Ignoring InstanceGroup of unknown role %q", g.Spec.Role)
 			continue
 		}
 
-		if name == groupName {
-			if instancegroup != nil {
+		if name == groupName || name == backingGroupName {
+			klog.Infof("matchInstanceGroup()::match for IG %s: %s == (%s || %s)", g.ObjectMeta.Name, name, groupName, backingGroupName)
+			//if results != nil && !hasBackingSG {
+			if results != nil && backingGroupName == "" {
+				klog.Errorf("matchInstanceGroup()::found multiple instance groups matching servergrp %q", groupName)
 				return nil, fmt.Errorf("found multiple instance groups matching servergrp %q", groupName)
+			} else if results != nil && backingGroupName != "" {
+				klog.Infof("matchInstanceGroup()::found multiple instance groups matching servergrp %q, allowing it due to backingSG %s", groupName, backingGroupName)
 			}
-			instancegroup = g
+			results = append(results, g)
 		}
 	}
 
-	return instancegroup, nil
+	return results, nil
 }
 
-func osBuildCloudInstanceGroup(c OpenstackCloud, cluster *kops.Cluster, ig *kops.InstanceGroup, g *servergroups.ServerGroup, nodeMap map[string]*v1.Node) (*cloudinstances.CloudInstanceGroup, error) {
-	newLaunchConfigName := g.Name
+func osBuildCloudInstanceGroup(c OpenstackCloud, cluster *kops.Cluster, ig *kops.InstanceGroup, grps []servergroups.ServerGroup, nodeMap map[string]*v1.Node) (*cloudinstances.CloudInstanceGroup, error) {
+	// newLaunchConfigName := g.Name
+	newLaunchConfigName := cluster.ObjectMeta.Name + "-" + ig.ObjectMeta.Name
 	cg := &cloudinstances.CloudInstanceGroup{
 		HumanName:     newLaunchConfigName,
 		InstanceGroup: ig,
 		MinSize:       int(fi.Int32Value(ig.Spec.MinSize)),
 		TargetSize:    int(fi.Int32Value(ig.Spec.MinSize)), // TODO: Retrieve the target size from OpenStack?
 		MaxSize:       int(fi.Int32Value(ig.Spec.MaxSize)),
-		Raw:           g,
+		Raw:           grps, // TODO: can we attach a slice here?
 	}
-	for _, i := range g.Members {
-		instanceId := i
-		if instanceId == "" {
-			klog.Warningf("ignoring instance with no instance id: %s", i)
-			continue
-		}
-		server, err := servers.Get(c.ComputeClient(), instanceId).Extract()
-		if err != nil {
-			return nil, fmt.Errorf("Failed to get instance group member: %v", err)
-		}
-		igObservedGeneration := server.Metadata[INSTANCE_GROUP_GENERATION]
-		clusterObservedGeneration := server.Metadata[CLUSTER_GENERATION]
-		observedName := fmt.Sprintf("%s-%s", clusterObservedGeneration, igObservedGeneration)
-		generationName := fmt.Sprintf("%d-%d", cluster.GetGeneration(), ig.Generation)
 
-		status := cloudinstances.CloudInstanceStatusUpToDate
-		if generationName != observedName {
-			status = cloudinstances.CloudInstanceStatusNeedsUpdate
+	for _, g := range grps {
+		klog.Infof("osBuildCloudInstanceGroup()::g.Members: %v", g.Members)
+		for _, i := range g.Members {
+			instanceId := i
+			if instanceId == "" {
+				klog.Warningf("ignoring instance with no instance id: %s", i)
+				continue
+			}
+			server, err := servers.Get(c.ComputeClient(), instanceId).Extract()
+			if err != nil {
+				return nil, fmt.Errorf("Failed to get instance group member: %v", err)
+			}
+
+			actualIG := server.Metadata[TagKopsInstanceGroup]
+			if actualIG != ig.ObjectMeta.Name {
+				klog.Infof("ignoring instance %s (%s), which is not part of IG %s but is part of backingSG %s", server.Name, i, ig.ObjectMeta.Name, g.Name)
+				continue
+			}
+
+			igObservedGeneration := server.Metadata[INSTANCE_GROUP_GENERATION]
+			clusterObservedGeneration := server.Metadata[CLUSTER_GENERATION]
+			observedName := fmt.Sprintf("%s-%s", clusterObservedGeneration, igObservedGeneration)
+			generationName := fmt.Sprintf("%d-%d", cluster.GetGeneration(), ig.Generation)
+
+			status := cloudinstances.CloudInstanceStatusUpToDate
+			if generationName != observedName {
+				status = cloudinstances.CloudInstanceStatusNeedsUpdate
+			}
+			cm, err := cg.NewCloudInstance(instanceId, status, nodeMap[instanceId])
+			if err != nil {
+				return nil, fmt.Errorf("error creating cloud instance group member: %v", err)
+			}
+
+			if server.Flavor["original_name"] != nil {
+				cm.MachineType = server.Flavor["original_name"].(string)
+			}
+
+			ip, err := GetServerFixedIP(server, server.Metadata[TagKopsNetwork])
+			if err != nil {
+				return nil, fmt.Errorf("error creating cloud instance group member: %v", err)
+			}
+
+			cm.PrivateIP = ip
+
+			cm.Roles = []string{server.Metadata["KopsRole"]}
+
 		}
-		cm, err := cg.NewCloudInstance(instanceId, status, nodeMap[instanceId])
-		if err != nil {
-			return nil, fmt.Errorf("error creating cloud instance group member: %v", err)
-		}
-
-		if server.Flavor["original_name"] != nil {
-			cm.MachineType = server.Flavor["original_name"].(string)
-		}
-
-		ip, err := GetServerFixedIP(server, server.Metadata[TagKopsNetwork])
-		if err != nil {
-			return nil, fmt.Errorf("error creating cloud instance group member: %v", err)
-		}
-
-		cm.PrivateIP = ip
-
-		cm.Roles = []string{server.Metadata["KopsRole"]}
-
 	}
+	klog.Infof("osBuildCloudInstanceGroup()::cg: %+v", cg)
 	return cg, nil
 }
 

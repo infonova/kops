@@ -140,6 +140,7 @@ func (_ *ServerGroup) RenderOpenstack(t *openstack.OpenstackAPITarget, a, e, cha
 		if err != nil {
 			return fmt.Errorf("error creating ServerGroup: %v", err)
 		}
+		klog.Infof("the server group for %v: %v", e, g)
 		e.ID = fi.String(g.ID)
 		return nil
 	} else if changes.MaxSize != nil && fi.Int32Value(a.MaxSize) > fi.Int32Value(changes.MaxSize) {
