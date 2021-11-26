@@ -639,23 +639,60 @@ func getCloudGroups(c OpenstackCloud, cluster *kops.Cluster, instancegroups []*k
 		return nil, fmt.Errorf("unable to list servergroups: %v", err)
 	}
 
+	// for _, grp := range serverGrps {
+	// 	name := grp.Name
+	// 	ig_slice, err := matchInstanceGroup(name, cluster.ObjectMeta.Name, instancegroups)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("error getting instance group for servergroup %q", name)
+	// 	}
+	// 	if ig_slice == nil {
+	// 		if warnUnmatched {
+	// 			klog.Warningf("Found servergrp with no corresponding instance group %q", name)
+	// 		}
+	// 		continue
+	// 	}
+
+	// 	for _, ig := range ig_slice {
+	// 		groups[ig.ObjectMeta.Name], err = osBuildCloudInstanceGroup(c, cluster, ig, []servergroups.ServerGroup{grp}, nodeMap)
+	// 		if err != nil {
+	// 			return nil, fmt.Errorf("error getting cloud instance group %q: %v", ig.ObjectMeta.Name, err)
+	// 		}
+	// 	}
+	// }
+
+	// map server groups to igs
+	sgMap := make(map[*kops.InstanceGroup][]servergroups.ServerGroup)
 	for _, grp := range serverGrps {
 		name := grp.Name
-		instancegroup, err := matchInstanceGroup(name, cluster.ObjectMeta.Name, instancegroups)
+		ig_slice, err := matchInstanceGroup(name, cluster.ObjectMeta.Name, instancegroups)
 		if err != nil {
 			return nil, fmt.Errorf("error getting instance group for servergroup %q", name)
 		}
-		if instancegroup == nil {
+		if ig_slice == nil {
 			if warnUnmatched {
 				klog.Warningf("Found servergrp with no corresponding instance group %q", name)
 			}
 			continue
 		}
-		groups[instancegroup.ObjectMeta.Name], err = osBuildCloudInstanceGroup(c, cluster, instancegroup, &grp, nodeMap)
-		if err != nil {
-			return nil, fmt.Errorf("error getting cloud instance group %q: %v", instancegroup.ObjectMeta.Name, err)
+
+		for _, ig := range ig_slice {
+			if mappedSgs, ok := sgMap[ig]; !ok {
+				sgMap[ig] = []servergroups.ServerGroup{grp}
+			} else {
+				sgMap[ig] = append(mappedSgs, grp)
+			}
 		}
 	}
+	klog.Infof("getCloudGroups()::sgMap: %+v", sgMap)
+
+	// build grups with the sgs to ig map
+	for ig, grps := range sgMap {
+		groups[ig.ObjectMeta.Name], err = osBuildCloudInstanceGroup(c, cluster, ig, grps, nodeMap)
+		if err != nil {
+			return nil, fmt.Errorf("error getting cloud instance group %q: %v", ig.ObjectMeta.Name, err)
+		}
+	}
+
 	return groups, nil
 }
 
