@@ -161,6 +161,11 @@ func (c *NodeController) updateNodeRecords(node *v1.Node) string {
 			Value:       a.Address,
 			AliasTarget: true,
 		})
+		records = append(records, dns.Record{
+			RecordType:  recordType,
+			FQDN:        node.Name + ".k8s.local.",
+			Value:       a.Address,
+		})
 	}
 
 	// node/<name>/external -> ExternalIP
@@ -177,6 +182,11 @@ func (c *NodeController) updateNodeRecords(node *v1.Node) string {
 			FQDN:        "node/" + node.Name + "/external",
 			Value:       a.Address,
 			AliasTarget: true,
+		})
+		records = append(records, dns.Record{
+			RecordType:  recordType,
+			FQDN:        node.Name + ".k8s.local.",
+			Value:       a.Address,
 		})
 	}
 
