@@ -64,7 +64,7 @@ GITSHA := $(shell cd ${KOPS_ROOT}; git describe --always)
 # We lock the versions of our controllers also
 # We need to keep in sync with:
 #   upup/models/cloudup/resources/addons/dns-controller/
-DNS_CONTROLLER_TAG=1.22.2
+DNS_CONTROLLER_TAG=1.22.2-bearingpoint-1
 DNS_CONTROLLER_PUSH_TAG=$(shell tools/get_workspace_status.sh | grep STABLE_DNS_CONTROLLER_TAG | awk '{print $$2}')
 #   upup/models/cloudup/resources/addons/kops-controller.addons.k8s.io/
 KOPS_CONTROLLER_TAG=1.22.2
