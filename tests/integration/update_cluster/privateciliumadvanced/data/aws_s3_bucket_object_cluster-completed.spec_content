@@ -22,7 +22,7 @@ spec:
   containerRuntime: containerd
   containerd:
     logLevel: info
-    version: 1.4.11
+    version: 1.4.12
   dnsZone: Z1AFAKE1ZON3YO
   docker:
     skipInstall: true
@@ -194,6 +194,7 @@ spec:
       clusterName: default
       containerRuntimeLabels: none
       cpuRequest: 25m
+      disableCNPStatusUpdates: false
       disableMasquerade: true
       enableBPFMasquerade: false
       enableEndpointHealthChecking: true

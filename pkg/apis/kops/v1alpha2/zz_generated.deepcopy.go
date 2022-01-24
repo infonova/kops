@@ -573,6 +573,11 @@ func (in *CiliumNetworkingSpec) DeepCopyInto(out *CiliumNetworkingSpec) {
 		*out = new(HubbleSpec)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.DisableCNPStatusUpdates != nil {
+		in, out := &in.DisableCNPStatusUpdates, &out.DisableCNPStatusUpdates
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
@@ -1433,6 +1438,11 @@ func (in *DockerConfig) DeepCopyInto(out *DockerConfig) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.DNS != nil {
+		in, out := &in.DNS, &out.DNS
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.ExecOpt != nil {
 		in, out := &in.ExecOpt, &out.ExecOpt
 		*out = make([]string, len(*in))
@@ -1492,6 +1502,21 @@ func (in *DockerConfig) DeepCopyInto(out *DockerConfig) {
 		in, out := &in.LogOpt, &out.LogOpt
 		*out = make([]string, len(*in))
 		copy(*out, *in)
+	}
+	if in.MaxConcurrentDownloads != nil {
+		in, out := &in.MaxConcurrentDownloads, &out.MaxConcurrentDownloads
+		*out = new(int32)
+		**out = **in
+	}
+	if in.MaxConcurrentUploads != nil {
+		in, out := &in.MaxConcurrentUploads, &out.MaxConcurrentUploads
+		*out = new(int32)
+		**out = **in
+	}
+	if in.MaxDownloadAttempts != nil {
+		in, out := &in.MaxDownloadAttempts, &out.MaxDownloadAttempts
+		*out = new(int32)
+		**out = **in
 	}
 	if in.MetricsAddress != nil {
 		in, out := &in.MetricsAddress, &out.MetricsAddress

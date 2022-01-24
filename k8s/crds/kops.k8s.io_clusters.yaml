@@ -783,6 +783,11 @@ spec:
                     items:
                       type: string
                     type: array
+                  dns:
+                    description: DNS is the IP address of the DNS server
+                    items:
+                      type: string
+                    type: array
                   execOpt:
                     description: ExecOpt is a series of options passed to the runtime
                     items:
@@ -840,6 +845,21 @@ spec:
                     items:
                       type: string
                     type: array
+                  maxConcurrentDownloads:
+                    description: MaxConcurrentDownloads sets the max concurrent downloads
+                      for each pull
+                    format: int32
+                    type: integer
+                  maxConcurrentUploads:
+                    description: MaxConcurrentUploads sets the max concurrent uploads
+                      for each push
+                    format: int32
+                    type: integer
+                  maxDownloadAttempts:
+                    description: MaxDownloadAttempts sets the max download attempts
+                      for each pull
+                    format: int32
+                    type: integer
                   metricsAddress:
                     description: Metrics address is the endpoint to serve with Prometheus
                       format metrics
@@ -4540,6 +4560,10 @@ spec:
                         description: Device is not implemented and may be removed
                           in the future. Setting this has no effect.
                         type: string
+                      disableCNPStatusUpdates:
+                        description: Determines if CNP NodeStatus updates will be
+                          sent to the Kubernetes api-server.
+                        type: boolean
                       disableConntrack:
                         description: DisableConntrack is not implemented and may be
                           removed in the future. Setting this has no effect.
