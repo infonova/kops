@@ -56,7 +56,6 @@ func (b *CiliumOptionsBuilder) BuildOptions(o interface{}) error {
 
 	if c.BPFCTGlobalAnyMax == 0 {
 		c.BPFCTGlobalAnyMax = 262144
-
 	}
 
 	if c.BPFCTGlobalTCPMax == 0 {
@@ -139,6 +138,10 @@ func (b *CiliumOptionsBuilder) BuildOptions(o interface{}) error {
 		c.EnableL7Proxy = fi.Bool(true)
 	}
 
+	if c.DisableCNPStatusUpdates == nil {
+		c.DisableCNPStatusUpdates = fi.Bool(false)
+	}
+
 	if c.CPURequest == nil {
 		defaultCPURequest := resource.MustParse("25m")
 		c.CPURequest = &defaultCPURequest
@@ -165,5 +168,4 @@ func (b *CiliumOptionsBuilder) BuildOptions(o interface{}) error {
 	}
 
 	return nil
-
 }

@@ -77,8 +77,10 @@ type assetResource struct {
 	Asset *asset
 }
 
-var _ Resource = &assetResource{}
-var _ HasSource = &assetResource{}
+var (
+	_ Resource  = &assetResource{}
+	_ HasSource = &assetResource{}
+)
 
 func (r *assetResource) Open() (io.Reader, error) {
 	return r.Asset.resource.Open()
@@ -238,9 +240,10 @@ func (a *AssetStore) addURLs(urls []string, hash *hashing.Hash) error {
 		}
 	}
 
-	// We assume the first url is the "main" url, and download to that _name_, wherever we get it from
+	// We assume the first url is the "main" url, and download to the base of that _name_, wherever we get it from
 	primaryURL := urls[0]
-	localFile := path.Join(a.cacheDir, hash.String()+"_"+utils.SanitizeString(primaryURL))
+	key := path.Base(primaryURL)
+	localFile := path.Join(a.cacheDir, hash.String()+"_"+utils.SanitizeString(key))
 
 	for _, url := range urls {
 		_, err = DownloadURL(url, localFile, hash)
@@ -255,7 +258,6 @@ func (a *AssetStore) addURLs(urls []string, hash *hashing.Hash) error {
 		return err
 	}
 
-	key := path.Base(primaryURL)
 	assetPath := primaryURL
 	r := NewFileResource(localFile)
 
@@ -283,48 +285,6 @@ func (a *AssetStore) addURLs(urls []string, hash *hashing.Hash) error {
 	return nil
 }
 
-//func (a *AssetStore) addFile(assetPath string, p string) error {
-//	r := NewFileResource(p)
-//	return a.addResource(assetPath, r)
-//}
-
-//func (a *AssetStore) addResource(assetPath string, r Resource) error {
-//	hash, err := HashForResource(r, HashAlgorithmSHA256)
-//	if err != nil {
-//		return err
-//	}
-//
-//	localFile := path.Join(a.assetDir, hash + "_" + utils.SanitizeString(assetPath))
-//	hasHash, err := fileHasHash(localFile, hash)
-//	if err != nil {
-//		return err
-//	}
-//
-//	if !hasHash {
-//		err = WriteFile(localFile, r, 0644, 0755)
-//		if err != nil {
-//			return err
-//		}
-//	}
-//
-//	asset := &asset{
-//		Key:       localFile,
-//		AssetPath: assetPath,
-//		resource:  r,
-//	}
-//	klog.V(2).Infof("added asset %q for %q", asset.Key, asset.resource)
-//	a.assets = append(a.assets, asset)
-//
-//	if strings.HasSuffix(assetPath, ".tar.gz") {
-//		err = a.addArchive(localFile)
-//		if err != nil {
-//			return err
-//		}
-//	}
-//
-//	return nil
-//}
-
 func (a *AssetStore) addArchive(archiveSource *Source, archiveFile string) error {
 	extracted := path.Join(a.cacheDir, "extracted/"+path.Base(archiveFile))
 
@@ -332,7 +292,7 @@ func (a *AssetStore) addArchive(archiveSource *Source, archiveFile string) error
 		// We extract to a temporary dir which we then rename so this is atomic
 		// (untarring can be slow, and we might crash / be interrupted half-way through)
 		extractedTemp := extracted + ".tmp-" + strconv.FormatInt(time.Now().UnixNano(), 10)
-		err := os.MkdirAll(extractedTemp, 0755)
+		err := os.MkdirAll(extractedTemp, 0o755)
 		if err != nil {
 			return fmt.Errorf("error creating directories %q: %v", path.Dir(extractedTemp), err)
 		}
@@ -388,5 +348,4 @@ func (a *AssetStore) addArchive(archiveSource *Source, archiveFile string) error
 		return fmt.Errorf("error adding expanded asset files in %q: %v", extracted, err)
 	}
 	return nil
-
 }

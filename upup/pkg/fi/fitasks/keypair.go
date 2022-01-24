@@ -40,6 +40,8 @@ type Keypair struct {
 	Signer *Keypair
 	// Subject is the certificate subject
 	Subject string `json:"subject"`
+	// Issuer is the certificate issuer, if not the same as the subject.
+	Issuer string `json:"issuer"`
 	// Type the type of certificate i.e. CA, server, client etc
 	Type string `json:"type"`
 	// LegacyFormat is whether the keypair is stored in a legacy format.
@@ -49,8 +51,10 @@ type Keypair struct {
 	keyset       *fi.Keyset
 }
 
-var _ fi.HasCheckExisting = &Keypair{}
-var _ fi.HasName = &Keypair{}
+var (
+	_ fi.HasCheckExisting = &Keypair{}
+	_ fi.HasName          = &Keypair{}
+)
 
 // It's important always to check for the existing key, so we don't regenerate keys e.g. on terraform
 func (e *Keypair) CheckExisting(c *fi.Context) bool {
@@ -93,6 +97,7 @@ func (e *Keypair) Find(c *fi.Context) (*Keypair, error) {
 		Name:           &name,
 		AlternateNames: alternateNames,
 		Subject:        pki.PkixNameToString(&cert.Subject),
+		Issuer:         pki.PkixNameToString(&cert.Certificate.Issuer),
 		Type:           pki.BuildTypeDescription(cert.Certificate),
 		LegacyFormat:   keyset.LegacyFormat,
 	}
@@ -131,6 +136,9 @@ func (e *Keypair) normalize() error {
 	sort.Strings(alternateNames)
 	e.AlternateNames = alternateNames
 
+	if e.Signer != nil {
+		e.Issuer = e.Signer.Subject
+	}
 	return nil
 }
 
@@ -146,6 +154,7 @@ func (_ *Keypair) CheckChanges(a, e, changes *Keypair) error {
 func (_ *Keypair) ShouldCreate(a, e, changes *Keypair) (bool, error) {
 	// Don't reissue a CA just because the Subject or AlternateNames changed
 	if a != nil && e.Type == "ca" && changes.Type == "" && !a.LegacyFormat {
+		e.Subject = a.Subject
 		return false, nil
 	}
 
@@ -171,6 +180,9 @@ func (_ *Keypair) Render(c *fi.Context, a, e, changes *Keypair) error {
 		} else if changes.Subject != "" && e.Type != "ca" {
 			createCertificate = true
 			klog.V(8).Infof("creating certificate new Subject")
+		} else if changes.Issuer != "" {
+			createCertificate = true
+			klog.V(8).Infof("creating certificate new Issuer")
 		} else if changes.Type != "" {
 			createCertificate = true
 			klog.Infof("creating certificate %q as Type has changed (actual=%v, expected=%v)", name, a.Type, e.Type)

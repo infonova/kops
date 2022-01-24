@@ -6,7 +6,7 @@ spec:
   addons:
   - id: k8s-1.16
     manifest: kops-controller.addons.k8s.io/k8s-1.16.yaml
-    manifestHash: ec83c6160b99c5c46333bb9ae8d4fd009f896bece41ed73db3508b59aec3cc4b
+    manifestHash: cbb94064143d9ebb27e58c27ffd05b87ed158ec7c87d6271abac730aaa3edcc3
     name: kops-controller.addons.k8s.io
     needsRollingUpdate: control-plane
     selector:
@@ -40,7 +40,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.12
     manifest: dns-controller.addons.k8s.io/k8s-1.12.yaml
-    manifestHash: b914f0a1844824974e0b49af738a5865b4f68782b95e58b6ebb6fd3b6170964f
+    manifestHash: 38ea4ef872827abbdb942961f5b9fa916542b4989383006a05c78933adf0fdb7
     name: dns-controller.addons.k8s.io
     selector:
       k8s-addon: dns-controller.addons.k8s.io
@@ -54,7 +54,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.22
     manifest: networking.projectcalico.org.canal/k8s-1.22.yaml
-    manifestHash: 49059daf38b0194987d7725c03191a37d11244a1694255b9c007d1e3d1d6883f
+    manifestHash: 55e99ac918787db6ea49149ac9b31d757237575f30abc9355bb6e82321b50f1f
     name: networking.projectcalico.org.canal
     selector:
       role.kubernetes.io/networking: "1"
