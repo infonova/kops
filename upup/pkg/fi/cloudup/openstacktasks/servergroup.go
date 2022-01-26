@@ -77,6 +77,26 @@ func (s *ServerGroup) Find(context *fi.Context) (*ServerGroup, error) {
 			if actual != nil {
 				return nil, fmt.Errorf("Found multiple server groups with name %s", fi.StringValue(s.Name))
 			}
+
+			opts := servers.ListOpts{
+				Name: fmt.Sprintf("^%s", fi.StringValue(s.IGName)),
+			}
+			allInstances, err := cloud.ListInstances(opts)
+			klog.Infof("servergroup:Find():allInstances: %+v", allInstances)
+
+			if err != nil {
+				return nil, fmt.Errorf("error fetching instance list: %v", err)
+			}
+
+			members := []string{}
+			for _, server := range allInstances {
+				for _, member := range serverGroup.Members {
+					if member == server.ID {
+						members = append(members, member)
+					}
+				}
+			}
+
 			actual = &ServerGroup{
 				Name:          s.Name,
 				BackingSGName: fi.String(serverGroup.Name),
@@ -85,8 +105,8 @@ func (s *ServerGroup) Find(context *fi.Context) (*ServerGroup, error) {
 				ID:            fi.String(serverGroup.ID),
 				Lifecycle:     s.Lifecycle,
 				Policies:      serverGroup.Policies,
-				MaxSize:       fi.Int32(int32(len(serverGroup.Members))),
-				members:       serverGroup.Members,
+				MaxSize:       fi.Int32(int32(len(members))),
+				members:       members,
 			}
 		}
 	}
