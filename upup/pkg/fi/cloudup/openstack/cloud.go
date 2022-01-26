@@ -575,6 +575,11 @@ func (c *openstackCloud) DeleteGroup(g *cloudinstances.CloudInstanceGroup) error
 }
 
 func deleteGroup(c OpenstackCloud, g *cloudinstances.CloudInstanceGroup) error {
+	// TODO(sprietl): adapt code here too, because g.Raw contains a list of servergroups, question is if this is necessary?
+	// I0125 12:24:37.918777   76385 delete.go:54] Deleting "control-plane-2"
+    // panic: interface conversion: interface {} is []servergroups.ServerGroup, not *servergroups.ServerGroup
+    // goroutine 1 [running]:
+    // k8s.io/kops/upup/pkg/fi/cloudup/openstack.deleteGroup({0x8dd93b8, 0xc000a6f0e0}, 0xb35c240)
 	grp := g.Raw.(*servergroups.ServerGroup)
 
 	for _, id := range grp.Members {

@@ -157,7 +157,7 @@ func osBuildCloudInstanceGroup(c OpenstackCloud, cluster *kops.Cluster, ig *kops
 		MinSize:       int(fi.Int32Value(ig.Spec.MinSize)),
 		TargetSize:    int(fi.Int32Value(ig.Spec.MinSize)), // TODO: Retrieve the target size from OpenStack?
 		MaxSize:       int(fi.Int32Value(ig.Spec.MaxSize)),
-		Raw:           grps, // TODO: can we attach a slice here?
+		Raw:           grps, // TODO: does it make sense to attach a slice here?
 	}
 
 	for _, g := range grps {
