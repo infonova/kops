@@ -149,7 +149,6 @@ func matchInstanceGroup(name string, clusterName string, instancegroups []*kops.
 }
 
 func osBuildCloudInstanceGroup(c OpenstackCloud, cluster *kops.Cluster, ig *kops.InstanceGroup, grps []servergroups.ServerGroup, nodeMap map[string]*v1.Node) (*cloudinstances.CloudInstanceGroup, error) {
-	// newLaunchConfigName := g.Name
 	newLaunchConfigName := cluster.ObjectMeta.Name + "-" + ig.ObjectMeta.Name
 	cg := &cloudinstances.CloudInstanceGroup{
 		HumanName:     newLaunchConfigName,
@@ -157,7 +156,7 @@ func osBuildCloudInstanceGroup(c OpenstackCloud, cluster *kops.Cluster, ig *kops
 		MinSize:       int(fi.Int32Value(ig.Spec.MinSize)),
 		TargetSize:    int(fi.Int32Value(ig.Spec.MinSize)), // TODO: Retrieve the target size from OpenStack?
 		MaxSize:       int(fi.Int32Value(ig.Spec.MaxSize)),
-		Raw:           grps, // TODO: does it make sense to attach a slice here?
+		Raw:           grps, // TODO(sprietl): does it make sense to attach a slice here?
 	}
 
 	for _, g := range grps {

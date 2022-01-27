@@ -577,35 +577,56 @@ func (c *openstackCloud) DeleteGroup(g *cloudinstances.CloudInstanceGroup) error
 func deleteGroup(c OpenstackCloud, g *cloudinstances.CloudInstanceGroup) error {
 	// TODO(sprietl): adapt code here too, because g.Raw contains a list of servergroups, question is if this is necessary?
 	// I0125 12:24:37.918777   76385 delete.go:54] Deleting "control-plane-2"
-    // panic: interface conversion: interface {} is []servergroups.ServerGroup, not *servergroups.ServerGroup
-    // goroutine 1 [running]:
-    // k8s.io/kops/upup/pkg/fi/cloudup/openstack.deleteGroup({0x8dd93b8, 0xc000a6f0e0}, 0xb35c240)
-	grp := g.Raw.(*servergroups.ServerGroup)
+	// panic: interface conversion: interface {} is []servergroups.ServerGroup, not *servergroups.ServerGroup
+	// goroutine 1 [running]:
+	// k8s.io/kops/upup/pkg/fi/cloudup/openstack.deleteGroup({0x8dd93b8, 0xc000a6f0e0}, 0xb35c240)
+	grps := g.Raw.([]servergroups.ServerGroup)
 
-	for _, id := range grp.Members {
-		err := c.DeleteInstanceWithID(id)
-		if err != nil {
-			return fmt.Errorf("could not delete instance %q: %v", id, err)
+	for _, grp := range grps {
+		// TODO(sprietl): determine only members part of the ig [done]
+		opts := servers.ListOpts{
+			Name: fmt.Sprintf("^%s", g.InstanceGroup.ObjectMeta.Name),
 		}
-	}
 
-	ports, err := c.ListPorts(ports.ListOpts{})
-	if err != nil {
-		return fmt.Errorf("Could not list ports %v", err)
-	}
+		allInstances, err := c.ListInstances(opts)
+		if err != nil {
+			return fmt.Errorf("error fetching instance list: %v", err)
+		}
 
-	for _, port := range ports {
-		if strings.Contains(port.Name, grp.Name) {
-			err := c.DeletePort(port.ID)
-			if err != nil {
-				return fmt.Errorf("could not delete port %q: %v", port.ID, err)
+		members := []string{}
+		for _, server := range allInstances {
+			for _, member := range grp.Members {
+				if member == server.ID {
+					members = append(members, member)
+				}
 			}
 		}
-	}
 
-	err = c.DeleteServerGroup(grp.ID)
-	if err != nil {
-		return fmt.Errorf("could not server group %q: %v", grp.ID, err)
+		for _, id := range grp.Members {
+			err := c.DeleteInstanceWithID(id)
+			if err != nil {
+				return fmt.Errorf("could not delete instance %q: %v", id, err)
+			}
+		}
+
+		ports, err := c.ListPorts(ports.ListOpts{})
+		if err != nil {
+			return fmt.Errorf("Could not list ports %v", err)
+		}
+
+		for _, port := range ports {
+			if strings.Contains(port.Name, grp.Name) {
+				err := c.DeletePort(port.ID)
+				if err != nil {
+					return fmt.Errorf("could not delete port %q: %v", port.ID, err)
+				}
+			}
+		}
+
+		err = c.DeleteServerGroup(grp.ID)
+		if err != nil {
+			return fmt.Errorf("could not server group %q: %v", grp.ID, err)
+		}
 	}
 
 	return nil
@@ -623,27 +644,6 @@ func getCloudGroups(c OpenstackCloud, cluster *kops.Cluster, instancegroups []*k
 	if err != nil {
 		return nil, fmt.Errorf("unable to list servergroups: %v", err)
 	}
-
-	// for _, grp := range serverGrps {
-	// 	name := grp.Name
-	// 	ig_slice, err := matchInstanceGroup(name, cluster.ObjectMeta.Name, instancegroups)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("error getting instance group for servergroup %q", name)
-	// 	}
-	// 	if ig_slice == nil {
-	// 		if warnUnmatched {
-	// 			klog.Warningf("Found servergrp with no corresponding instance group %q", name)
-	// 		}
-	// 		continue
-	// 	}
-
-	// 	for _, ig := range ig_slice {
-	// 		groups[ig.ObjectMeta.Name], err = osBuildCloudInstanceGroup(c, cluster, ig, []servergroups.ServerGroup{grp}, nodeMap)
-	// 		if err != nil {
-	// 			return nil, fmt.Errorf("error getting cloud instance group %q: %v", ig.ObjectMeta.Name, err)
-	// 		}
-	// 	}
-	// }
 
 	// map server groups to igs
 	sgMap := make(map[*kops.InstanceGroup][]servergroups.ServerGroup)
