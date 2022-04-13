@@ -569,6 +569,7 @@ resource "aws_s3_bucket_object" "cluster-completed-spec" {
 }
 
 resource "aws_s3_bucket_object" "discovery-json" {
+  acl                    = "public-read"
   bucket                 = "testingBucket"
   content                = file("${path.module}/data/aws_s3_bucket_object_discovery.json_content")
   key                    = "discovery.example.com/minimal.example.com/.well-known/openid-configuration"
@@ -593,6 +594,7 @@ resource "aws_s3_bucket_object" "etcd-cluster-spec-main" {
 }
 
 resource "aws_s3_bucket_object" "keys-json" {
+  acl                    = "public-read"
   bucket                 = "testingBucket"
   content                = file("${path.module}/data/aws_s3_bucket_object_keys.json_content")
   key                    = "discovery.example.com/minimal.example.com/openid/v1/jwks"
@@ -632,10 +634,10 @@ resource "aws_s3_bucket_object" "manifests-static-kube-apiserver-healthcheck" {
   server_side_encryption = "AES256"
 }
 
-resource "aws_s3_bucket_object" "minimal-example-com-addons-aws-load-balancer-controller-addons-k8s-io-k8s-1-9" {
+resource "aws_s3_bucket_object" "minimal-example-com-addons-aws-load-balancer-controller-addons-k8s-io-k8s-1-19" {
   bucket                 = "testingBucket"
-  content                = file("${path.module}/data/aws_s3_bucket_object_minimal.example.com-addons-aws-load-balancer-controller.addons.k8s.io-k8s-1.9_content")
-  key                    = "clusters.example.com/minimal.example.com/addons/aws-load-balancer-controller.addons.k8s.io/k8s-1.9.yaml"
+  content                = file("${path.module}/data/aws_s3_bucket_object_minimal.example.com-addons-aws-load-balancer-controller.addons.k8s.io-k8s-1.19_content")
+  key                    = "clusters.example.com/minimal.example.com/addons/aws-load-balancer-controller.addons.k8s.io/k8s-1.19.yaml"
   provider               = aws.files
   server_side_encryption = "AES256"
 }

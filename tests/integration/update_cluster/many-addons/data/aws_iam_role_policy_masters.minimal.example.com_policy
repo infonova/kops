@@ -167,6 +167,7 @@
         "ec2:DescribeAvailabilityZones",
         "ec2:DescribeInstanceTypes",
         "ec2:DescribeInstances",
+        "ec2:DescribeInternetGateways",
         "ec2:DescribeLaunchTemplateVersions",
         "ec2:DescribeNetworkInterfaces",
         "ec2:DescribeRegions",
@@ -183,8 +184,8 @@
         "ec2:UnassignPrivateIpAddresses",
         "elasticloadbalancing:AddTags",
         "elasticloadbalancing:CreateListener",
-        "elasticloadbalancing:CreateRule",
         "elasticloadbalancing:CreateTargetGroup",
+        "elasticloadbalancing:DeleteListener",
         "elasticloadbalancing:DescribeListenerCertificates",
         "elasticloadbalancing:DescribeListeners",
         "elasticloadbalancing:DescribeLoadBalancerAttributes",
@@ -195,6 +196,7 @@
         "elasticloadbalancing:DescribeTargetGroupAttributes",
         "elasticloadbalancing:DescribeTargetGroups",
         "elasticloadbalancing:DescribeTargetHealth",
+        "elasticloadbalancing:ModifyListener",
         "elasticloadbalancing:RegisterTargets",
         "iam:GetServerCertificate",
         "iam:ListServerCertificates",
@@ -232,7 +234,6 @@
         "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
         "elasticloadbalancing:DeregisterTargets",
         "elasticloadbalancing:DetachLoadBalancerFromSubnets",
-        "elasticloadbalancing:ModifyListener",
         "elasticloadbalancing:ModifyLoadBalancerAttributes",
         "elasticloadbalancing:ModifyRule",
         "elasticloadbalancing:ModifyTargetGroup",
@@ -240,8 +241,11 @@
         "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
         "elasticloadbalancing:RegisterTargets",
         "elasticloadbalancing:RemoveTags",
+        "elasticloadbalancing:SetIpAddressType",
         "elasticloadbalancing:SetLoadBalancerPoliciesForBackendServer",
-        "elasticloadbalancing:SetLoadBalancerPoliciesOfListener"
+        "elasticloadbalancing:SetLoadBalancerPoliciesOfListener",
+        "elasticloadbalancing:SetSecurityGroups",
+        "elasticloadbalancing:SetSubnets"
       ],
       "Condition": {
         "StringEquals": {
@@ -257,6 +261,7 @@
         "ec2:CreateVolume",
         "elasticloadbalancing:CreateListener",
         "elasticloadbalancing:CreateLoadBalancer",
+        "elasticloadbalancing:CreateRule",
         "elasticloadbalancing:CreateTargetGroup"
       ],
       "Condition": {
