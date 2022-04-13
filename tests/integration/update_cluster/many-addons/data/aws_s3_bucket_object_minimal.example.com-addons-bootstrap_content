@@ -6,7 +6,7 @@ spec:
   addons:
   - id: k8s-1.16
     manifest: kops-controller.addons.k8s.io/k8s-1.16.yaml
-    manifestHash: a1e334ffb558f619940171797f90b779ae44c58af8e6b4b23471816b901f1d48
+    manifestHash: 51e706ac10ad56c387f78fe836ee8a631d7924fb54094c3deca94bf0a6981180
     name: kops-controller.addons.k8s.io
     needsRollingUpdate: control-plane
     selector:
@@ -40,7 +40,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.12
     manifest: dns-controller.addons.k8s.io/k8s-1.12.yaml
-    manifestHash: 38ea4ef872827abbdb942961f5b9fa916542b4989383006a05c78933adf0fdb7
+    manifestHash: a215707045afd6ec4dfeed79da2085d3c80dff75b82a44b3631c5c7f5e4e49ef
     name: dns-controller.addons.k8s.io
     selector:
       k8s-addon: dns-controller.addons.k8s.io
@@ -54,7 +54,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.16
     manifest: certmanager.io/k8s-1.16.yaml
-    manifestHash: 85a4d2a4e69f6e0c2d3bc23f76c1454a5e90f19f7515d0c4030d9ec9716f217f
+    manifestHash: 442128e1970a7b60a7634e22b3a06d34d2216150a56bca16ba4321efd3552257
     name: certmanager.io
     selector: null
     version: 9.99.0
@@ -65,9 +65,9 @@ spec:
     selector:
       k8s-addon: node-termination-handler.aws
     version: 9.99.0
-  - id: k8s-1.9
-    manifest: aws-load-balancer-controller.addons.k8s.io/k8s-1.9.yaml
-    manifestHash: ebf99002d1f991ad20114c2471941859cabccfee4cead00dd4412db84b76cbb2
+  - id: k8s-1.19
+    manifest: aws-load-balancer-controller.addons.k8s.io/k8s-1.19.yaml
+    manifestHash: 9f57097ea954a71cb3a67444d2e8654bdb59b54444870b2c9ae9c40700fe318e
     name: aws-load-balancer-controller.addons.k8s.io
     needsPKI: true
     selector:
@@ -97,7 +97,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.20
     manifest: snapshot-controller.addons.k8s.io/k8s-1.20.yaml
-    manifestHash: 7629abf66390989fa8529a3e7ef2274cc6d0169957d28ce36c7ebf59d6af7191
+    manifestHash: c1625843c5dbf647500867b4af18a62c6ded8516800d051f21a75589a3fa5c27
     name: snapshot-controller.addons.k8s.io
     needsPKI: true
     selector:
