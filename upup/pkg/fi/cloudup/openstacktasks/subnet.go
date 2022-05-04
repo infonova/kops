@@ -24,6 +24,7 @@ import (
 	"k8s.io/klog/v2"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/cloudup/openstack"
+	"k8s.io/kops/upup/pkg/fi/utils"
 )
 
 // +kops:fitask
@@ -35,6 +36,14 @@ type Subnet struct {
 	DNSServers []*string
 	Tag        *string
 	Lifecycle  fi.Lifecycle
+}
+
+func determineIPVersion(cidr string) gophercloud.IPVersion {
+	if utils.IsIPv6CIDR(cidr) {
+		return gophercloud.IPv6
+	}
+
+	return gophercloud.IPv4
 }
 
 // GetDependencies returns the dependencies of the Port task
@@ -91,13 +100,15 @@ func NewSubnetTaskFromCloud(cloud openstack.OpenstackCloud, lifecycle fi.Lifecyc
 
 func (s *Subnet) Find(context *fi.Context) (*Subnet, error) {
 	cloud := context.Cloud.(openstack.OpenstackCloud)
+
+	cidr := fi.StringValue(s.CIDR)
 	opt := subnets.ListOpts{
 		ID:         fi.StringValue(s.ID),
 		Name:       fi.StringValue(s.Name),
 		NetworkID:  fi.StringValue(s.Network.ID),
-		CIDR:       fi.StringValue(s.CIDR),
+		CIDR:       cidr,
 		EnableDHCP: fi.Bool(true),
-		IPVersion:  4,
+		IPVersion:  int(determineIPVersion(cidr)),
 	}
 	rs, err := cloud.ListSubnets(opt)
 	if err != nil {
