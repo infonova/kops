@@ -418,13 +418,13 @@ func validateSubnets(cluster *kops.ClusterSpec, fieldPath *field.Path) field.Err
 		}
 	}
 
-	if kops.CloudProviderID(cluster.CloudProvider) != kops.CloudProviderAWS {
-		for i := range subnets {
-			if subnets[i].IPv6CIDR != "" {
-				allErrs = append(allErrs, field.Forbidden(fieldPath.Index(i).Child("ipv6CIDR"), "ipv6CIDR can only be specified for AWS"))
-			}
-		}
-	}
+	// if kops.CloudProviderID(cluster.CloudProvider) != kops.CloudProviderAWS {
+	// 	for i := range subnets {
+	// 		if subnets[i].IPv6CIDR != "" {
+	// 			allErrs = append(allErrs, field.Forbidden(fieldPath.Index(i).Child("ipv6CIDR"), "ipv6CIDR can only be specified for AWS"))
+	// 		}
+	// 	}
+	// }
 
 	return allErrs
 }
