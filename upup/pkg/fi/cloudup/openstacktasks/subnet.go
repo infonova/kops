@@ -155,11 +155,12 @@ func (*Subnet) RenderOpenstack(t *openstack.OpenstackAPITarget, a, e, changes *S
 	if a == nil {
 		klog.V(2).Infof("Creating Subnet with name:%q", fi.StringValue(e.Name))
 
+		cidr := fi.StringValue(e.CIDR)
 		opt := subnets.CreateOpts{
 			Name:       fi.StringValue(e.Name),
 			NetworkID:  fi.StringValue(e.Network.ID),
-			IPVersion:  gophercloud.IPv4,
-			CIDR:       fi.StringValue(e.CIDR),
+			IPVersion:  determineIPVersion(cidr),
+			CIDR:       cidr,
 			EnableDHCP: fi.Bool(true),
 		}
 
