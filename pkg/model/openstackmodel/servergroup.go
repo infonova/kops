@@ -111,6 +111,7 @@ func (b *ServerGroupModelBuilder) buildInstances(c *fi.ModelBuilderContext, sg *
 
 		var az *string
 		var subnets []*openstacktasks.Subnet
+		// TODO(sprietl): find a way to attach ivp4 and ipv6 subnets, not only alternate (naming convention?, access cluster spec?)
 		if len(ig.Spec.Subnets) > 0 {
 			subnet := ig.Spec.Subnets[int(i)%len(ig.Spec.Subnets)]
 			// bastion subnet name might contain a "utility-" prefix
