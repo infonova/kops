@@ -112,21 +112,50 @@ func (b *ServerGroupModelBuilder) buildInstances(c *fi.ModelBuilderContext, sg *
 
 		var az *string
 		var subnets []*openstacktasks.Subnet
-		// TODO(sprietl): find a way to attach ivp4 and ipv6 subnets, not only alternate (naming convention?, access cluster spec?)
+
 		if len(ig.Spec.Subnets) > 0 {
-			subnet := ig.Spec.Subnets[int(i)%len(ig.Spec.Subnets)]
-			// bastion subnet name might contain a "utility-" prefix
-			if ig.Spec.Role == kops.InstanceGroupRoleBastion {
-				az = fi.String(strings.Replace(subnet, "utility-", "", 1))
-			} else {
-				az = fi.String(subnet)
+			// TODO(sprietl): find a way to attach ivp4 and ipv6 subnets, not only alternate (naming convention?, access cluster spec?)
+			var ipv4_subnet_specs []string
+			var ipv6_subnet_specs []string
+			for _, subnetSpec := range ig.Spec.Subnets {
+				if !strings.HasSuffix(subnetSpec, "-v6") {
+					ipv4_subnet_specs = append(ipv4_subnet_specs, subnetSpec)
+				} else {
+					ipv6_subnet_specs = append(ipv6_subnet_specs, subnetSpec)
+				}
 			}
 
-			subnetName, err := b.findSubnetClusterSpec(subnet)
-			if err != nil {
-				return err
+			if len(ipv4_subnet_specs) > 0 {
+				subnet := ipv4_subnet_specs[int(i)%len(ipv4_subnet_specs)]
+				// bastion subnet name might contain a "utility-" prefix
+				if ig.Spec.Role == kops.InstanceGroupRoleBastion {
+					az = fi.String(strings.Replace(subnet, "utility-", "", 1))
+				} else {
+					az = fi.String(subnet)
+				}
+
+				subnetName, err := b.findSubnetClusterSpec(subnet)
+				if err != nil {
+					return err
+				}
+				subnets = append(subnets, b.LinkToSubnet(s(subnetName)))
 			}
-			subnets = append(subnets, b.LinkToSubnet(s(subnetName)))
+
+			if len(ipv6_subnet_specs) > 0 {
+				subnet := ipv6_subnet_specs[int(i)%len(ipv6_subnet_specs)]
+				// bastion subnet name might contain a "utility-" prefix
+				if ig.Spec.Role == kops.InstanceGroupRoleBastion {
+					az = fi.String(strings.Replace(subnet, "utility-", "", 1))
+				} else {
+					az = fi.String(subnet)
+				}
+
+				subnetName, err := b.findSubnetClusterSpec(subnet)
+				if err != nil {
+					return err
+				}
+				subnets = append(subnets, b.LinkToSubnet(s(subnetName)))
+			}
 		}
 		if len(ig.Spec.Zones) > 0 {
 			zone := ig.Spec.Zones[int(i)%len(ig.Spec.Zones)]
