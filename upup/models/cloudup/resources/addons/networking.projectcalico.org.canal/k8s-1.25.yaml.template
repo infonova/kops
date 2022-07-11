@@ -4843,14 +4843,14 @@ spec:
                 operator: Exists
               - key: kubernetes.io/os
                 operator: In
-                values: 
+                values:
                 - linux
             - matchExpressions:
               - key: node-role.kubernetes.io/master
                 operator: Exists
               - key: kubernetes.io/os
                 operator: In
-                values: 
+                values:
                 - linux
       tolerations:
         # Mark the pod as a critical add-on for rescheduling.
