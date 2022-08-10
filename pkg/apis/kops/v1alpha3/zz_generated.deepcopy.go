@@ -4727,6 +4727,11 @@ func (in *OpenstackNetwork) DeepCopyInto(out *OpenstackNetwork) {
 			}
 		}
 	}
+	if in.AddressSortOrder != nil {
+		in, out := &in.AddressSortOrder, &out.AddressSortOrder
+		*out = new(string)
+		**out = **in
+	}
 	return
 }
 
