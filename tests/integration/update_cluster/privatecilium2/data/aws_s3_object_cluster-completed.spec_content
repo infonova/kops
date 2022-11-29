@@ -36,7 +36,7 @@ spec:
     logLevel: info
     runc:
       version: 1.1.4
-    version: 1.6.8
+    version: 1.6.10
   dnsZone: Z1AFAKE1ZON3YO
   docker:
     skipInstall: true
@@ -221,7 +221,7 @@ spec:
       sidecarIstioProxyImage: cilium/istio_proxy
       toFqdnsDnsRejectResponseCode: refused
       tunnel: vxlan
-      version: v1.11.8
+      version: v1.11.11
   nonMasqueradeCIDR: 100.64.0.0/10
   podCIDR: 100.96.0.0/11
   secretStore: memfs://clusters.example.com/privatecilium.example.com/secrets

@@ -150,7 +150,6 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: pod-identity-webhook
-  namespace: kube-system
   annotations:
     cert-manager.io/inject-ca-from: kube-system/pod-identity-webhook
 webhooks:
@@ -185,8 +184,8 @@ metadata:
   name: pod-identity-webhook
   namespace: kube-system
   annotations:
-    prometheus.io/port: "443"
-    prometheus.io/scheme: "https"
+    prometheus.io/port: "9999"
+    prometheus.io/scheme: "http"
     prometheus.io/scrape: "true"
 spec:
   ports:
@@ -202,13 +201,17 @@ metadata:
   name: pod-identity-webhook
   namespace: kube-system
   annotations:
-    prometheus.io/port: "443"
-    prometheus.io/scheme: "https"
+    prometheus.io/port: "9999"
+    prometheus.io/scheme: "http"
     prometheus.io/scrape: "true"
 data:
   config: {{ PodIdentityWebhookConfigMapData }}
 ---
+{{ if IsKubernetesGTE "1.23" }}
+apiVersion: policy/v1
+{{ else }}
 apiVersion: policy/v1beta1
+{{ end }}
 kind: PodDisruptionBudget
 metadata:
   name: pod-identity-webhook

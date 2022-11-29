@@ -91,9 +91,6 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 	dest["replace"] = func(s, find, replace string) string {
 		return strings.Replace(s, find, replace, -1)
 	}
-	dest["join"] = func(a []string, sep string) string {
-		return strings.Join(a, sep)
-	}
 	dest["joinHostPort"] = net.JoinHostPort
 
 	sprigTxtFuncMap := sprig.TxtFuncMap()
@@ -103,6 +100,7 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 	dest["trimPrefix"] = sprigTxtFuncMap["trimPrefix"]
 	dest["semverCompare"] = sprigTxtFuncMap["semverCompare"]
 	dest["ternary"] = sprigTxtFuncMap["ternary"]
+	dest["join"] = sprigTxtFuncMap["join"]
 
 	dest["ClusterName"] = tf.ClusterName
 	dest["WithDefaultBool"] = func(v *bool, defaultValue bool) bool {
@@ -195,6 +193,7 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 			envVars := map[string]string{
 				// Use defaults from the official AWS VPC CNI Helm chart:
 				// https://github.com/aws/amazon-vpc-cni-k8s/blob/master/charts/aws-vpc-cni/values.yaml
+				"ADDITIONAL_ENI_TAGS":                   "{}",
 				"AWS_VPC_CNI_NODE_PORT_SUPPORT":         "true",
 				"AWS_VPC_ENI_MTU":                       "9001",
 				"AWS_VPC_K8S_CNI_CONFIGURE_RPFILTER":    "false",
@@ -209,7 +208,9 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 				"DISABLE_INTROSPECTION":                 "false",
 				"DISABLE_METRICS":                       "false",
 				"ENABLE_POD_ENI":                        "false",
+				"ENABLE_PREFIX_DELEGATION":              "false",
 				"WARM_ENI_TARGET":                       "1",
+				"WARM_PREFIX_TARGET":                    "1",
 				"DISABLE_NETWORK_RESOURCE_PROVISIONING": "false",
 			}
 			for _, e := range c.Env {
