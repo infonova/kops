@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/name: aws-node
     app.kubernetes.io/instance: aws-vpc-cni
     k8s-app: aws-node
-    app.kubernetes.io/version: "v1.11.2"
+    app.kubernetes.io/version: "v1.11.4"
 ---
 # Source: aws-vpc-cni/templates/customresourcedefinition.yaml
 apiVersion: apiextensions.k8s.io/v1
@@ -21,7 +21,7 @@ metadata:
     app.kubernetes.io/name: aws-node
     app.kubernetes.io/instance: aws-vpc-cni
     k8s-app: aws-node
-    app.kubernetes.io/version: "v1.11.2"
+    app.kubernetes.io/version: "v1.11.4"
 spec:
   scope: Cluster
   group: crd.k8s.amazonaws.com
@@ -48,7 +48,7 @@ metadata:
     app.kubernetes.io/name: aws-node
     app.kubernetes.io/instance: aws-vpc-cni
     k8s-app: aws-node
-    app.kubernetes.io/version: "v1.11.2"
+    app.kubernetes.io/version: "v1.11.4"
 rules:
   - apiGroups:
       - crd.k8s.amazonaws.com
@@ -59,10 +59,17 @@ rules:
     resources:
       - namespaces
     verbs: ["list", "watch", "get"]
+{{- if AmazonVpcEnvVars.ANNOTATE_POD_IP }}
+  - apiGroups: [""]
+    resources:
+      - pods
+    verbs: ["list", "watch", "get", "patch"]
+{{- else }}
   - apiGroups: [""]
     resources:
       - pods
     verbs: ["list", "watch", "get"]
+{{- end }}
   - apiGroups: [""]
     resources:
       - nodes
@@ -71,6 +78,10 @@ rules:
     resources:
       - '*'
     verbs: ["list", "watch"]
+  - apiGroups: ["", "events.k8s.io"]
+    resources:
+      - events
+    verbs: ["create", "patch", "list", "get"]
 ---
 # Source: aws-vpc-cni/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -81,7 +92,7 @@ metadata:
     app.kubernetes.io/name: aws-node
     app.kubernetes.io/instance: aws-vpc-cni
     k8s-app: aws-node
-    app.kubernetes.io/version: "v1.11.2"
+    app.kubernetes.io/version: "v1.11.4"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -101,7 +112,7 @@ metadata:
     app.kubernetes.io/name: aws-node
     app.kubernetes.io/instance: aws-vpc-cni
     k8s-app: aws-node
-    app.kubernetes.io/version: "v1.11.2"
+    app.kubernetes.io/version: "v1.11.4"
 spec:
   updateStrategy:
     rollingUpdate:
@@ -122,7 +133,7 @@ spec:
       hostNetwork: true
       initContainers:
       - name: aws-vpc-cni-init
-        image: "{{- or .Networking.AmazonVPC.InitImage "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni-init:v1.11.2" }}"
+        image: "{{- or .Networking.AmazonVPC.InitImage "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni-init:v1.11.4" }}"
         env:
           - name: DISABLE_TCP_EARLY_DEMUX
             value: "false"
@@ -140,7 +151,7 @@ spec:
         {}
       containers:
         - name: aws-node
-          image: "{{- or .Networking.AmazonVPC.Image "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.11.2" }}"
+          image: "{{- or .Networking.AmazonVPC.Image "602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon-k8s-cni:v1.11.4" }}"
           ports:
             - containerPort: 61678
               name: metrics
@@ -219,7 +230,7 @@ spec:
               value: "{{ ClusterName }}"
           resources:
             requests:
-              cpu: 10m
+              cpu: 25m
           securityContext:
             capabilities:
               add:

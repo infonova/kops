@@ -892,6 +892,7 @@ func AddCCMPermissions(p *Policy, cloudRoutes bool) {
 		"autoscaling:DescribeTags",
 		"ec2:DescribeInstances",
 		"ec2:DescribeRegions",
+		"ec2:DescribeAvailabilityZones",
 		"ec2:DescribeRouteTables",
 		"ec2:DescribeSecurityGroups",
 		"ec2:DescribeSubnets",
@@ -967,6 +968,7 @@ func AddAWSLoadbalancerControllerPermissions(p *Policy, enableWAF, enableWAFv2, 
 		"ec2:DescribeNetworkInterfaces",
 		"ec2:DescribeSubnets",
 		"ec2:DescribeSecurityGroups",
+		"ec2:DescribeVpcPeeringConnections",
 		"ec2:DescribeVpcs",
 		"ec2:DescribeAccountAttributes",
 
@@ -1057,6 +1059,7 @@ func AddClusterAutoscalerPermissions(p *Policy, useStaticInstanceList bool) {
 		"autoscaling:DescribeAutoScalingGroups",
 		"autoscaling:DescribeAutoScalingInstances",
 		"autoscaling:DescribeLaunchConfigurations",
+		"autoscaling:DescribeScalingActivities",
 		"ec2:DescribeLaunchTemplateVersions",
 	)
 	if !useStaticInstanceList {

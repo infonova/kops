@@ -6,7 +6,7 @@ spec:
   addons:
   - id: k8s-1.16
     manifest: kops-controller.addons.k8s.io/k8s-1.16.yaml
-    manifestHash: d10aa065de456d393b5c5ca56d669075c7619b6299b1193ed08b564059caf890
+    manifestHash: 3149556b70c4608deba911d619f32af4113a4fc1ad7b2054f7d0ad49ea86bc59
     name: kops-controller.addons.k8s.io
     needsRollingUpdate: control-plane
     selector:
@@ -34,7 +34,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.12
     manifest: dns-controller.addons.k8s.io/k8s-1.12.yaml
-    manifestHash: 9887fce9353c01a3b797ab1b672caa6ebdca7c900281ceff11cf2bfccf078abb
+    manifestHash: 2b219ce68e8170fc473483cf2a64a4541460f13c8d3af6121f9782c74ad1ab55
     name: dns-controller.addons.k8s.io
     selector:
       k8s-addon: dns-controller.addons.k8s.io
@@ -48,7 +48,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.16
     manifest: certmanager.io/k8s-1.16.yaml
-    manifestHash: 2b1fc2ca18c196c00252385cd9b7dc3f7f6dbb0c669089f9b9e1962279a433c4
+    manifestHash: de2f4d98e140a967681e5ed7a45859a4adfe47afa9b201149c00c7bd42edf2e8
     name: certmanager.io
     selector: null
     version: 9.99.0
@@ -112,7 +112,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.16
     manifest: networking.amazon-vpc-routed-eni/k8s-1.16.yaml
-    manifestHash: 10b68f143656e1a5ee2a2a09d72e983c85a0de8ea79b1741ca1f4d506899934f
+    manifestHash: 32d83e9d76bfc756c57096c6b0715beb6bc9e571044990c6144b5344a89ff58f
     name: networking.amazon-vpc-routed-eni
     needsRollingUpdate: all
     selector:
@@ -120,14 +120,14 @@ spec:
     version: 9.99.0
   - id: k8s-1.18
     manifest: aws-cloud-controller.addons.k8s.io/k8s-1.18.yaml
-    manifestHash: 3dc5f8afaeca391ef2cfff7103af4e3ea5cb8f905af098af45eb6f1b5c03c724
+    manifestHash: 9c5708188af7563dc1f6b40d9e9f71ac17e77ae2f1b2a73a39802bc5c5e68c55
     name: aws-cloud-controller.addons.k8s.io
     selector:
       k8s-addon: aws-cloud-controller.addons.k8s.io
     version: 9.99.0
   - id: k8s-1.17
     manifest: aws-ebs-csi-driver.addons.k8s.io/k8s-1.17.yaml
-    manifestHash: 6a8fb957f27764628a5f7ecf96c17fb64de0540c8245283b8ed750e173f839e5
+    manifestHash: dbe5a01d6c2130aab1a0b92ead375051333108726c8f65a3f2a755dd1f457389
     name: aws-ebs-csi-driver.addons.k8s.io
     selector:
       k8s-addon: aws-ebs-csi-driver.addons.k8s.io
