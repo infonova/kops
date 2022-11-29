@@ -30,27 +30,48 @@ import (
 )
 
 const (
-	runcVersion         = "1.1.3"
 	runcVersionUrlAmd64 = "https://github.com/opencontainers/runc/releases/download/v%s/runc.amd64"
 	runcVersionUrlArm64 = "https://github.com/opencontainers/runc/releases/download/v%s/runc.arm64"
 )
 
 func findRuncAsset(c *kops.Cluster, assetBuilder *assets.AssetBuilder, arch architectures.Architecture) (*url.URL, *hashing.Hash, error) {
-	if c.Spec.Containerd == nil || c.Spec.Containerd.Version == nil {
-		return nil, nil, fmt.Errorf("unable to find containerd version, used to determine runc version")
+	if c.Spec.Containerd == nil {
+		return nil, nil, fmt.Errorf("unable to find containerd config")
 	}
+	containerd := c.Spec.Containerd
 
-	containerdVersion, err := semver.ParseTolerant(fi.StringValue(c.Spec.Containerd.Version))
+	containerdVersion, err := semver.ParseTolerant(fi.StringValue(containerd.Version))
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to parse version string: %q", fi.StringValue(c.Spec.Containerd.Version))
+		return nil, nil, fmt.Errorf("unable to parse version string: %q", fi.StringValue(containerd.Version))
 	}
-	// The a compatible runc binary is bundled with containerd builds < v1.6.0
+	// A compatible runc binary is bundled with containerd builds < v1.6.0
 	// https://github.com/containerd/containerd/issues/6541
 	if containerdVersion.LT(semver.MustParse("1.6.0")) {
 		return nil, nil, nil
 	}
 
-	version := runcVersion
+	if containerd.Runc == nil {
+		return nil, nil, fmt.Errorf("unable to find runc config")
+	}
+	runc := containerd.Runc
+
+	if runc.Packages != nil {
+		if arch == architectures.ArchitectureAmd64 && runc.Packages.UrlAmd64 != nil && runc.Packages.HashAmd64 != nil {
+			assetUrl := fi.StringValue(runc.Packages.UrlAmd64)
+			assetHash := fi.StringValue(runc.Packages.HashAmd64)
+			return findAssetsUrlHash(assetBuilder, assetUrl, assetHash)
+		}
+		if arch == architectures.ArchitectureArm64 && runc.Packages.UrlArm64 != nil && runc.Packages.HashArm64 != nil {
+			assetUrl := fi.StringValue(runc.Packages.UrlArm64)
+			assetHash := fi.StringValue(runc.Packages.HashArm64)
+			return findAssetsUrlHash(assetBuilder, assetUrl, assetHash)
+		}
+	}
+
+	version := fi.StringValue(runc.Version)
+	if version == "" {
+		return nil, nil, fmt.Errorf("unable to find runc version")
+	}
 	assetUrl, assetHash, err := findRuncVersionUrlHash(arch, version)
 	if err != nil {
 		return nil, nil, err
@@ -137,6 +158,7 @@ func findAllRuncHashesAmd64() map[string]string {
 		"1.1.1": "5798c85d2c8b6942247ab8d6830ef362924cd72a8e236e77430c3ab1be15f080",
 		"1.1.2": "e0436dfc5d26ca88f00e84cbdab5801dd9829b1e5ded05dcfc162ce5718c32ce",
 		"1.1.3": "6e8b24be90fffce6b025d254846da9d2ca6d65125f9139b6354bab0272253d01",
+		"1.1.4": "db772be63147a4e747b4fe286c7c16a2edc4a8458bd3092ea46aaee77750e8ce",
 	}
 
 	return hashes
@@ -148,6 +170,7 @@ func findAllRuncHashesArm64() map[string]string {
 		"1.1.1": "20c436a736547309371c7ac2a335f5fe5a42b450120e497d09c8dc3902c28444",
 		"1.1.2": "6ebd968d46d00a3886e9a0cae2e0a7b399e110cf5d7b26e63ce23c1d81ea10ef",
 		"1.1.3": "00c9ad161a77a01d9dcbd25b1d76fa9822e57d8e4abf26ba8907c98f6bcfcd0f",
+		"1.1.4": "dbb71e737eaef454a406ce21fd021bd8f1b35afb7635016745992bbd7c17a223",
 	}
 
 	return hashes

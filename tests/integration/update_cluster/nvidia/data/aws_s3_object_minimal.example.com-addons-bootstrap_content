@@ -6,7 +6,7 @@ spec:
   addons:
   - id: k8s-1.16
     manifest: kops-controller.addons.k8s.io/k8s-1.16.yaml
-    manifestHash: d10aa065de456d393b5c5ca56d669075c7619b6299b1193ed08b564059caf890
+    manifestHash: 3149556b70c4608deba911d619f32af4113a4fc1ad7b2054f7d0ad49ea86bc59
     name: kops-controller.addons.k8s.io
     needsRollingUpdate: control-plane
     selector:
@@ -34,14 +34,14 @@ spec:
     version: 9.99.0
   - id: k8s-1.12
     manifest: dns-controller.addons.k8s.io/k8s-1.12.yaml
-    manifestHash: d5c02aad5ffe8c96a5cc57dc867864b46e37459ad9d5dbf2c1536c322ca072d9
+    manifestHash: 332001be96f9b3027309d609f719249f9495bc11a8ddd9804d1f58308d1ce5c2
     name: dns-controller.addons.k8s.io
     selector:
       k8s-addon: dns-controller.addons.k8s.io
     version: 9.99.0
   - id: k8s-1.16
     manifest: nvidia.addons.k8s.io/k8s-1.16.yaml
-    manifestHash: 0b5963253c1cf13686226a8893b9b9e3ffd1373d5e2fb0699588d8714a4ba78a
+    manifestHash: b69ab4301c67af1a7edd934caf0ca7a37c7e40035e5f19fc1794f565c19eb9cf
     name: nvidia.addons.k8s.io
     selector:
       k8s-addon: nvidia.addons.k8s.io

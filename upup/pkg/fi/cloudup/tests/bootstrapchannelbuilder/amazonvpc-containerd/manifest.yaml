@@ -6,7 +6,7 @@ spec:
   addons:
   - id: k8s-1.16
     manifest: kops-controller.addons.k8s.io/k8s-1.16.yaml
-    manifestHash: db994a90b869613f2fe69ed196a3f88b9fb256c4a8177bb4254e1fdf4faab5a3
+    manifestHash: 87aeb3d6fcef881814704afad701c357483a908fb6545002d2c0086233524923
     name: kops-controller.addons.k8s.io
     needsRollingUpdate: control-plane
     selector:
@@ -34,7 +34,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.12
     manifest: dns-controller.addons.k8s.io/k8s-1.12.yaml
-    manifestHash: d5c02aad5ffe8c96a5cc57dc867864b46e37459ad9d5dbf2c1536c322ca072d9
+    manifestHash: 332001be96f9b3027309d609f719249f9495bc11a8ddd9804d1f58308d1ce5c2
     name: dns-controller.addons.k8s.io
     selector:
       k8s-addon: dns-controller.addons.k8s.io
@@ -48,7 +48,7 @@ spec:
     version: 9.99.0
   - id: k8s-1.16
     manifest: networking.amazon-vpc-routed-eni/k8s-1.16.yaml
-    manifestHash: 2e0458cfabd7cf4ea468caa9f16fa525b58e849736f45da6ee6d2cc1ab305544
+    manifestHash: a75f204dc2f54d5d0f14ab798d0482016aaf1c9192a57d797d143b91a20cf934
     name: networking.amazon-vpc-routed-eni
     needsRollingUpdate: all
     selector:

@@ -91,9 +91,6 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 	dest["replace"] = func(s, find, replace string) string {
 		return strings.Replace(s, find, replace, -1)
 	}
-	dest["join"] = func(a []string, sep string) string {
-		return strings.Join(a, sep)
-	}
 	dest["joinHostPort"] = net.JoinHostPort
 
 	sprigTxtFuncMap := sprig.TxtFuncMap()
@@ -103,6 +100,7 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 	dest["trimPrefix"] = sprigTxtFuncMap["trimPrefix"]
 	dest["semverCompare"] = sprigTxtFuncMap["semverCompare"]
 	dest["ternary"] = sprigTxtFuncMap["ternary"]
+	dest["join"] = sprigTxtFuncMap["join"]
 
 	dest["ClusterName"] = tf.ClusterName
 	dest["WithDefaultBool"] = func(v *bool, defaultValue bool) bool {
@@ -189,6 +187,7 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 			envVars := map[string]string{
 				// Use defaults from the official AWS VPC CNI Helm chart:
 				// https://github.com/aws/amazon-vpc-cni-k8s/blob/master/charts/aws-vpc-cni/values.yaml
+				"ADDITIONAL_ENI_TAGS":                   "{}",
 				"AWS_VPC_CNI_NODE_PORT_SUPPORT":         "true",
 				"AWS_VPC_ENI_MTU":                       "9001",
 				"AWS_VPC_K8S_CNI_CONFIGURE_RPFILTER":    "false",
@@ -203,7 +202,9 @@ func (tf *TemplateFunctions) AddTo(dest template.FuncMap, secretStore fi.SecretS
 				"DISABLE_INTROSPECTION":                 "false",
 				"DISABLE_METRICS":                       "false",
 				"ENABLE_POD_ENI":                        "false",
+				"ENABLE_PREFIX_DELEGATION":              "false",
 				"WARM_ENI_TARGET":                       "1",
+				"WARM_PREFIX_TARGET":                    "1",
 				"DISABLE_NETWORK_RESOURCE_PROVISIONING": "false",
 			}
 			for _, e := range c.Env {
@@ -761,14 +762,12 @@ func (tf *TemplateFunctions) OpenStackCCMTag() string {
 	if err != nil {
 		tag = "latest"
 	} else {
-		if parsed.Minor == 13 {
-			// The bugfix release
-			tag = "1.13.1"
-		} else if parsed.Minor == 23 {
-			// The bugfix release, see https://github.com/kubernetes/cloud-provider-openstack/releases
+		if parsed.Minor == 23 {
 			tag = "v1.23.1"
 		} else if parsed.Minor == 24 {
-			tag = "v1.24.1"
+			tag = "v1.24.5"
+		} else if parsed.Minor == 25 {
+			tag = "v1.25.1"
 		} else {
 			// otherwise we use always .0 ccm image, if needed that can be overrided using clusterspec
 			tag = fmt.Sprintf("v%d.%d.0", parsed.Major, parsed.Minor)
@@ -786,7 +785,9 @@ func (tf *TemplateFunctions) OpenStackCSITag() string {
 		tag = "latest"
 	} else {
 		if parsed.Minor == 24 {
-			tag = "v1.24.1"
+			tag = "v1.24.5"
+		} else if parsed.Minor == 25 {
+			tag = "v1.25.1"
 		} else {
 			// otherwise we use always .0 csi image, if needed that can be overrided using cloud config spec
 			tag = fmt.Sprintf("v%d.%d.0", parsed.Major, parsed.Minor)
