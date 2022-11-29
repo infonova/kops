@@ -20,6 +20,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -32,6 +33,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/iam/iamiface"
 	"github.com/aws/aws-sdk-go/service/route53/route53iface"
 	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
+	"github.com/aws/aws-sdk-go/service/ssm/ssmiface"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/klog/v2"
 	"k8s.io/kops/dnsprovider/pkg/dnsprovider"
@@ -86,6 +88,7 @@ type MockCloud struct {
 	MockSpotinst       spotinst.Cloud
 	MockSQS            sqsiface.SQSAPI
 	MockEventBridge    eventbridgeiface.EventBridgeAPI
+	MockSSM            ssmiface.SSMAPI
 }
 
 func (c *MockAWSCloud) DeleteGroup(g *cloudinstances.CloudInstanceGroup) error {
@@ -221,7 +224,7 @@ func (c *MockAWSCloud) DescribeVPC(vpcID string) (*ec2.Vpc, error) {
 }
 
 func (c *MockAWSCloud) ResolveImage(name string) (*ec2.Image, error) {
-	return resolveImage(c.MockEC2, name)
+	return resolveImage(c.MockSSM, c.MockEC2, name)
 }
 
 func (c *MockAWSCloud) WithTags(tags map[string]string) AWSCloud {
@@ -299,6 +302,13 @@ func (c *MockAWSCloud) EventBridge() eventbridgeiface.EventBridgeAPI {
 		klog.Fatalf("MockEventBridgess not set")
 	}
 	return c.MockEventBridge
+}
+
+func (c *MockAWSCloud) SSM() ssmiface.SSMAPI {
+	if c.MockSSM == nil {
+		klog.Fatalf("MockSSM not set")
+	}
+	return c.MockSSM
 }
 
 func (c *MockAWSCloud) FindVPCInfo(id string) (*fi.VPCInfo, error) {
@@ -386,4 +396,8 @@ func (c *MockAWSCloud) DescribeInstanceType(instanceType string) (*ec2.InstanceT
 // AccountInfo returns the AWS account ID and AWS partition that we are deploying into
 func (c *MockAWSCloud) AccountInfo() (string, string, error) {
 	return "123456789012", "aws-test", nil
+}
+
+func (c *MockAWSCloud) Session() (*session.Session, error) {
+	return nil, nil
 }
