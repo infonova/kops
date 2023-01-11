@@ -133,15 +133,15 @@ containerd:
   logLevel: info
   runc:
     version: 1.1.4
-  version: 1.6.10
+  version: 1.6.15
 docker:
   skipInstall: true
 encryptionConfig: null
 etcdClusters:
   events:
-    version: 3.5.4
+    version: 3.5.6
   main:
-    version: 3.5.4
+    version: 3.5.6
 kubeAPIServer:
   allowPrivileged: true
   anonymousAuth: false
@@ -262,7 +262,7 @@ CloudProvider: aws
 ConfigBase: memfs://clusters.example.com/privatecanal.example.com
 InstanceGroupName: master-us-test-1a
 InstanceGroupRole: Master
-NodeupConfigHash: F4a2mskes3MRwkUV2P1tWlL1LTizAya7W7s1HTXXbCM=
+NodeupConfigHash: Vw90JYYuGrzqPincKIU11ve/M35+gOeXz4KM8m+N8oI=
 
 __EOF_KUBE_ENV
 

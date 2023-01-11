@@ -32,7 +32,7 @@ spec:
     logLevel: info
     runc:
       version: 1.1.4
-    version: 1.6.10
+    version: 1.6.15
   dnsZone: Z1AFAKE1ZON3YO
   docker:
     skipInstall: true
@@ -46,7 +46,7 @@ spec:
       name: a
     memoryRequest: 100Mi
     name: main
-    version: 3.5.4
+    version: 3.5.6
   - backups:
       backupStore: memfs://tests/minimal.example.com/backups/etcd/events
     cpuRequest: 100m
@@ -56,7 +56,7 @@ spec:
       name: a
     memoryRequest: 100Mi
     name: events
-    version: 3.5.4
+    version: 3.5.6
   externalDns:
     provider: dns-controller
   iam:
