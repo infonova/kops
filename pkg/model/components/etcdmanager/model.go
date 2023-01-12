@@ -181,7 +181,7 @@ metadata:
 spec:
   containers:
   - name: etcd-manager
-    image: registry.k8s.io/etcdadm/etcd-manager:v3.0.20220831
+    image: registry.k8s.io/etcdadm/etcd-manager:v3.0.20221209
     resources:
       requests:
         cpu: 100m
@@ -262,7 +262,7 @@ func (b *EtcdManagerBuilder) buildPod(etcdCluster kops.EtcdClusterSpec, instance
 	var clientHost string
 
 	if featureflag.APIServerNodes.Enabled() {
-		clientHost = etcdCluster.Name + ".etcd." + b.ClusterName()
+		clientHost = etcdCluster.Name + ".etcd.internal." + b.ClusterName()
 	} else {
 		clientHost = "__name__"
 	}
