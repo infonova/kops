@@ -327,6 +327,9 @@ spec:
             - "--endpoint=$(CSI_ENDPOINT)"
             - "--cloud-config=$(CLOUD_CONFIG)"
             - "--cluster=$(CLUSTER_NAME)"
+{{- if IsKubernetesLT "1.22" }}
+            - "--nodeid=$(NODE_ID)"
+{{- end }}
           env:
             - name: CSI_ENDPOINT
               value: unix://csi/csi.sock
@@ -334,6 +337,12 @@ spec:
               value: /etc/kubernetes/cloud.config
             - name: CLUSTER_NAME
               value: "{{- if .CloudProvider.Openstack.BlockStorage.ClusterName -}} {{ .CloudProvider.Openstack.BlockStorage.ClusterName }} {{- else -}} kubernetes {{- end -}}"
+{{- if IsKubernetesLT "1.22" }}
+            - name: NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+{{- end }}
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 9808
@@ -468,6 +477,9 @@ spec:
 {{- if .CloudProvider.Openstack.BlockStorage.ClusterName }}
             - "--cluster=$(CLUSTER_NAME)"
 {{- end }}
+{{- if IsKubernetesLT "1.22" }}
+            - "--nodeid=$(NODE_ID)"
+{{- end }}
           env:
             - name: CSI_ENDPOINT
               value: unix://csi/csi.sock
@@ -476,6 +488,12 @@ spec:
 {{- if .CloudProvider.Openstack.BlockStorage.ClusterName }}
             - name: CLUSTER_NAME
               value: {{ .CloudProvider.Openstack.BlockStorage.ClusterName }}
+{{- end }}
+{{- if IsKubernetesLT "1.22" }}
+            - name: NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
 {{- end }}
           imagePullPolicy: "IfNotPresent"
           ports:
