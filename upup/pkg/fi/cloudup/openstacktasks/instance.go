@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	l3floatingip "github.com/gophercloud/gophercloud/openstack/networking/v2/extensions/layer3/floatingips"
 	"github.com/gophercloud/gophercloud/openstack/networking/v2/ports"
@@ -307,6 +308,8 @@ func generateInstanceName(e *Instance) (string, error) {
 	return strings.ToLower(fmt.Sprintf("%s-%s", fi.ValueOf(e.GroupName), hash[0:6])), nil
 }
 
+var differentHostsMutex sync.Mutex
+
 func (_ *Instance) RenderOpenstack(t *openstack.OpenstackAPITarget, a, e, changes *Instance) error {
 	cloud := t.Cloud
 	if a == nil {
@@ -356,11 +359,47 @@ func (_ *Instance) RenderOpenstack(t *openstack.OpenstackAPITarget, a, e, change
 			KeyName:           openstackKeyPairName(fi.ValueOf(e.SSHKey)),
 		}
 
+		schedulerHints := schedulerhints.SchedulerHints{
+			Group: *e.ServerGroup.ID,
+		}
+
+		//
+		// note:
+		//   this relies on CreateInstance() waiting for host to be active because only then is the hostID set,
+		//   which means openstack knows where the differentHost servers run
+		if v, ok := e.Metadata[openstack.DIFFERENT_HOST_GROUPS]; ok {
+			// Note: need to lock/unlock because otherwise the hostID might not be set
+			defer differentHostsMutex.Unlock()
+			differentHostsMutex.Lock()
+
+			opts := servers.ListOpts{
+				Name: v,
+			}
+			allInstances, err := t.Cloud.ListInstances(opts)
+			if err != nil {
+				return fmt.Errorf("error fetching instance list: %v", err)
+			}
+
+			clusterName := e.Metadata["k8s"]
+			var differentHost []string
+			for _, server := range allInstances {
+				val, ok := server.Metadata["k8s"]
+				if !ok || val != clusterName {
+					continue
+				}
+
+				// TODO also check IG metadata?
+
+				differentHost = append(differentHost, server.ID)
+			}
+
+			schedulerHints.DifferentHost = differentHost
+		}
+		//
+
 		sgext := schedulerhints.CreateOptsExt{
 			CreateOptsBuilder: keyext,
-			SchedulerHints: &schedulerhints.SchedulerHints{
-				Group: *e.ServerGroup.ID,
-			},
+			SchedulerHints:    &schedulerHints,
 		}
 
 		opts, err := includeBootVolumeOptions(t, e, sgext)

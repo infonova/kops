@@ -97,6 +97,10 @@ func (b *ServerGroupModelBuilder) buildInstances(c *fi.CloudupModelBuilderContex
 		igMeta[openstack.BOOT_VOLUME_SIZE] = v
 	}
 
+	if v, ok := ig.ObjectMeta.Annotations[openstack.OS_ANNOTATION+openstack.DIFFERENT_HOST_GROUPS]; ok {
+		igMeta[openstack.DIFFERENT_HOST_GROUPS] = v
+	}
+
 	startupScript, err := b.BootstrapScriptBuilder.ResourceNodeUp(c, ig)
 	if err != nil {
 		return fmt.Errorf("could not create startup script for instance group %s: %v", ig.Name, err)
