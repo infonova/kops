@@ -18,6 +18,7 @@ package openstack
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
 	"time"
@@ -25,6 +26,16 @@ import (
 	"github.com/gophercloud/gophercloud/openstack/compute/v2/servers"
 	"k8s.io/kops/upup/pkg/fi"
 )
+
+func assertTestResults(t *testing.T, err error, expected interface{}, actual interface{}) {
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if !reflect.DeepEqual(expected, actual) {
+		t.Fatalf("expected %+v, but got %+v", expected, actual)
+	}
+}
 
 type WaitForStatusActiveMock struct {
 	server *servers.Server
