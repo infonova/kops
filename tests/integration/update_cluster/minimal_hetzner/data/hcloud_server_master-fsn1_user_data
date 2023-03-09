@@ -130,7 +130,7 @@ containerd:
   logLevel: info
   runc:
     version: 1.1.4
-  version: 1.6.15
+  version: 1.6.18
 docker:
   skipInstall: true
 encryptionConfig: null
@@ -138,11 +138,11 @@ etcdClusters:
   events:
     cpuRequest: 100m
     memoryRequest: 100Mi
-    version: 3.5.6
+    version: 3.5.7
   main:
     cpuRequest: 200m
     memoryRequest: 100Mi
-    version: 3.5.6
+    version: 3.5.7
 kubeAPIServer:
   allowPrivileged: true
   anonymousAuth: false
@@ -248,7 +248,7 @@ CloudProvider: hetzner
 ConfigBase: memfs://tests/minimal.k8s.local
 InstanceGroupName: master-fsn1
 InstanceGroupRole: Master
-NodeupConfigHash: DM3KIJ4mvWUOFcUQUtSaNUf+W80SjYqx95SXfk5O9KM=
+NodeupConfigHash: 2OGJyLU7YGBiZvi3VNiGEoFNCXI/KN/uaMbGGTE2VkI=
 
 __EOF_KUBE_ENV
 

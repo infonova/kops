@@ -19,7 +19,7 @@ spec:
     clusterCIDR: 100.64.0.0/10
     clusterName: minimal.example.com
     configureCloudRoutes: false
-    image: registry.k8s.io/provider-aws/cloud-controller-manager:v1.25.1
+    image: registry.k8s.io/provider-aws/cloud-controller-manager:v1.25.2
     leaderElection:
       leaderElect: true
   cloudProvider: aws
@@ -31,7 +31,7 @@ spec:
     logLevel: info
     runc:
       version: 1.1.4
-    version: 1.6.15
+    version: 1.6.18
   dnsZone: Z1AFAKE1ZON3YO
   docker:
     skipInstall: true
@@ -42,14 +42,14 @@ spec:
     - instanceGroup: master-us-test-1a
       name: us-test-1a
     name: main
-    version: 3.5.6
+    version: 3.5.7
   - backups:
       backupStore: memfs://clusters.example.com/minimal.example.com/backups/etcd/events
     etcdMembers:
     - instanceGroup: master-us-test-1a
       name: us-test-1a
     name: events
-    version: 3.5.6
+    version: 3.5.7
   externalDns:
     provider: dns-controller
   iam:
