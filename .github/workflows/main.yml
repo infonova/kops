@@ -62,39 +62,12 @@ jobs:
         run: |
           make all examples test
 
-      - name: Upload kops Linux binary
+      - name: Upload Linux binaries
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v3
         with:
           name: kops-linux-amd64
-          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/linux/amd64/kops
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Upload channels Linux binary
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-artifact@v3
-        with:
-          name: channels-linux-amd64
-          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/linux/amd64/channels
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Upload nodeup Linux binary
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-artifact@v3
-        with:
-          name: nodeup-linux-amd64
-          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/linux/amd64/nodeup
-          if-no-files-found: error
-          retention-days: 1
-
-      - name: Upload protokube Linux binary
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-artifact@v3
-        with:
-          name: protokube-linux-amd64
-          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/linux/amd64/protokube
+          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/linux/amd64/*
           if-no-files-found: error
           retention-days: 1
 
@@ -163,18 +136,24 @@ jobs:
       - build-macos-amd64
       - verify
     steps:
-      - name: Download all kops binary artifacts
+      - name: Download all binary artifacts
         uses: actions/download-artifact@v2
 
       - name: Rename kops binary artifacts
         run: |
-          mv kops-linux-amd64/kops kops-linux-amd64/kops-linux-amd64
           mv kops-darwin-amd64/kops kops-darwin-amd64/kops-darwin-amd64
+          mv kops-linux-amd64/kops kops-linux-amd64/kops-linux-amd64
+          mv kops-linux-amd64/channels kops-linux-amd64/channels-linux-amd64
+          mv kops-linux-amd64/protokube kops-linux-amd64/protokube-linux-amd64
+          mv kops-linux-amd64/nodeup kops-linux-amd64/nodeup-linux-amd64
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           fail_on_unmatched_files: true
           files: |
-            kops-linux-amd64/kops-linux-amd64
             kops-darwin-amd64/kops-darwin-amd64
+            kops-linux-amd64/kops-linux-amd64
+            kops-linux-amd64/channels-linux-amd64
+            kops-linux-amd64/protokube-linux-amd64
+            kops-linux-amd64/nodeup-linux-amd64
