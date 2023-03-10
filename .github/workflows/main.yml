@@ -62,12 +62,39 @@ jobs:
         run: |
           make all examples test
 
-      - name: Upload Linux binary
+      - name: Upload kops Linux binary
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v3
         with:
           name: kops-linux-amd64
           path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/linux/amd64/kops
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload channels Linux binary
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v3
+        with:
+          name: channels-linux-amd64
+          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/linux/amd64/channels
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload nodeup Linux binary
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v3
+        with:
+          name: nodeup-linux-amd64
+          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/linux/amd64/nodeup
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Upload protokube Linux binary
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v3
+        with:
+          name: protokube-linux-amd64
+          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/linux/amd64/protokube
           if-no-files-found: error
           retention-days: 1
 
@@ -97,7 +124,7 @@ jobs:
         run: |
           make kops examples test
 
-      - name: Upload macos binary
+      - name: Upload kops MacOS binary
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-artifact@v3
         with:
