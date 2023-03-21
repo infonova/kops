@@ -45,6 +45,7 @@ const (
 	BOOT_VOLUME_SIZE          = "osVolumeSize"
 	SERVER_GROUP_AFFINITY     = "serverGroupAffinity"
 	DIFFERENT_HOST_GROUPS     = "differentHostGroups"
+	ALLOWED_ADDRESS_PAIR      = "allowedAddressPair"
 
 	defaultActiveTimeout = time.Second * 120
 	activeStatus         = "ACTIVE"
