@@ -222,6 +222,8 @@ spec:
 
 ### Adding allowed address pairs to ports
 
+{{ kops_feature_table(kops_added_default='1.27') }}
+
 It is possible to make kOps provision and update the ports of the servers with allowed address pairs, which can be beneficial when needing to use for example VRRP for a custom loadbalancing solution.
 
 To make use of this annotate an Instance Group configuration like so:
