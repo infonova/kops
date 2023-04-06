@@ -54,6 +54,7 @@ type Instance struct {
 	SecurityGroups   []string
 	FloatingIP       *FloatingIP
 	ConfigDrive      *bool
+	Status           *string
 
 	Lifecycle    fi.Lifecycle
 	ForAPIServer bool
@@ -200,6 +201,7 @@ func (e *Instance) Find(c *fi.CloudupContext) (*Instance, error) {
 		AvailabilityZone: e.AvailabilityZone,
 		GroupName:        e.GroupName,
 		ConfigDrive:      e.ConfigDrive,
+		Status:           fi.PtrTo(server.Status),
 	}
 
 	ports, err := cloud.ListPorts(ports.ListOpts{
@@ -246,6 +248,7 @@ func (e *Instance) Find(c *fi.CloudupContext) (*Instance, error) {
 
 	// Avoid flapping
 	e.ID = actual.ID
+	e.Status = fi.PtrTo(activeStatus)
 	actual.ForAPIServer = e.ForAPIServer
 
 	// Immutable fields
@@ -283,6 +286,9 @@ func (_ *Instance) ShouldCreate(a, e, changes *Instance) (bool, error) {
 	if a == nil {
 		return true, nil
 	}
+	if fi.ValueOf(a.Status) == errorStatus {
+		return true, nil
+	}
 	if changes.Port != nil {
 		return true, nil
 	}
@@ -313,7 +319,13 @@ var differentHostsMutex sync.Mutex
 
 func (_ *Instance) RenderOpenstack(t *openstack.OpenstackAPITarget, a, e, changes *Instance) error {
 	cloud := t.Cloud
-	if a == nil {
+
+	if a != nil && fi.ValueOf(a.Status) == errorStatus {
+		klog.V(2).Infof("Delete previously failed server: %s\n", fi.ValueOf(a.ID))
+		cloud.DeleteInstanceWithID(fi.ValueOf(a.ID))
+	}
+
+	if a == nil || fi.ValueOf(a.Status) == errorStatus {
 		serverName, err := generateInstanceName(e)
 		if err != nil {
 			return err
