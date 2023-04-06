@@ -135,7 +135,7 @@ func osBuildCloudInstanceGroup(c OpenstackCloud, cluster *kops.Cluster, ig *kops
 		generationName := fmt.Sprintf("%d-%d", cluster.GetGeneration(), ig.Generation)
 
 		status := cloudinstances.CloudInstanceStatusUpToDate
-		if generationName != observedName {
+		if generationName != observedName || server.Status == errorStatus {
 			status = cloudinstances.CloudInstanceStatusNeedsUpdate
 		}
 		cm, err := cg.NewCloudInstance(instanceId, status, nodeMap[instanceId])
@@ -147,10 +147,11 @@ func osBuildCloudInstanceGroup(c OpenstackCloud, cluster *kops.Cluster, ig *kops
 			cm.MachineType = server.Flavor["original_name"].(string)
 		}
 
-		ip, err := GetServerFixedIP(server, server.Metadata[TagKopsNetwork])
-		if err != nil {
-			return nil, fmt.Errorf("error creating cloud instance group member: %v", err)
-		}
+		ip, _ := GetServerFixedIP(server, server.Metadata[TagKopsNetwork])
+		// TODO: simply ignore error or warn at least?
+		// if err != nil {
+		// 	return nil, fmt.Errorf("error creating cloud instance group member: %v", err)
+		// }
 
 		cm.PrivateIP = ip
 
