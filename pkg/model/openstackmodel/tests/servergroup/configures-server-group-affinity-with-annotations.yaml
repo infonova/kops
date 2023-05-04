@@ -67,6 +67,7 @@ ServerGroup:
   Name: cluster-node
   Policies:
   - soft-anti-affinity
+Status: null
 UserData:
   task:
     Lifecycle: ""
