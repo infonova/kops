@@ -94,6 +94,7 @@ ServerGroup:
   Name: cluster-bastion
   Policies:
   - anti-affinity
+Status: null
 UserData:
   task:
     Lifecycle: ""
@@ -182,6 +183,7 @@ ServerGroup:
   Name: cluster-master
   Policies:
   - anti-affinity
+Status: null
 UserData:
   task:
     Lifecycle: ""
@@ -255,6 +257,7 @@ ServerGroup:
   Name: cluster-node
   Policies:
   - anti-affinity
+Status: null
 UserData:
   task:
     Lifecycle: ""
