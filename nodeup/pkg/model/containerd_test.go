@@ -52,6 +52,10 @@ func TestContainerdBuilder_SkipInstall(t *testing.T) {
 	runDockerBuilderTest(t, "skipinstall")
 }
 
+func TestContainerdBuilder_Complex(t *testing.T) {
+	runContainerdBuilderTest(t, "complex", distributions.DistributionUbuntu2004)
+}
+
 func TestContainerdBuilder_BuildFlags(t *testing.T) {
 	grid := []struct {
 		config   kops.ContainerdConfig

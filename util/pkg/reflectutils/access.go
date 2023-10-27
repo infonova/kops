@@ -128,6 +128,27 @@ func setPrimitive(v reflect.Value, newValue string) error {
 
 	t := v.Type().String()
 
+	if v.Type().Kind() == reflect.Map {
+		if v.IsNil() {
+			v.Set(reflect.MakeMap(v.Type()))
+		}
+
+		switch t {
+		case "map[string]string":
+			name, value, _ := strings.Cut(newValue, "=")
+			v.SetMapIndex(reflect.ValueOf(name), reflect.ValueOf(value))
+
+		case "map[string]intstr.IntOrString":
+			name, value, _ := strings.Cut(newValue, "=")
+			v.SetMapIndex(reflect.ValueOf(name), reflect.ValueOf(intstr.Parse(value)))
+
+		default:
+			return fmt.Errorf("unhandled type %q", t)
+		}
+
+		return nil
+	}
+
 	var newV reflect.Value
 
 	switch t {

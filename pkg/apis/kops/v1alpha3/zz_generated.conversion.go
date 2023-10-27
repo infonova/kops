@@ -3399,6 +3399,7 @@ func Convert_kops_ClusterSubnetSpec_To_v1alpha3_ClusterSubnetSpec(in *kops.Clust
 
 func autoConvert_v1alpha3_ContainerdConfig_To_kops_ContainerdConfig(in *ContainerdConfig, out *kops.ContainerdConfig, s conversion.Scope) error {
 	out.Address = in.Address
+	out.ConfigAdditions = in.ConfigAdditions
 	out.ConfigOverride = in.ConfigOverride
 	out.LogLevel = in.LogLevel
 	if in.Packages != nil {
@@ -3443,6 +3444,7 @@ func Convert_v1alpha3_ContainerdConfig_To_kops_ContainerdConfig(in *ContainerdCo
 
 func autoConvert_kops_ContainerdConfig_To_v1alpha3_ContainerdConfig(in *kops.ContainerdConfig, out *ContainerdConfig, s conversion.Scope) error {
 	out.Address = in.Address
+	out.ConfigAdditions = in.ConfigAdditions
 	out.ConfigOverride = in.ConfigOverride
 	out.LogLevel = in.LogLevel
 	if in.Packages != nil {
