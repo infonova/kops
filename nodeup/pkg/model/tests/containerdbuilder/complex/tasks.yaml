@@ -8,7 +8,7 @@ contents: |
               "ipam": {
                   "type": "host-local",
                   "ranges": [[{"subnet": "{{.PodCIDR}}"}]],
-                  "routes": [{"dst":"0.0.0.0/0"}]
+                  "routes": [{ "dst": "0.0.0.0/0" }]
               }
           },
           {
@@ -26,7 +26,7 @@ contents: |
   [plugins]
 
     [plugins."io.containerd.grpc.v1.cri"]
-      sandbox_image = "registry.k8s.io/pause:3.9"
+      sandbox_image = "registry.k8s.io/pause:3.6"
 
       [plugins."io.containerd.grpc.v1.cri".cni]
         conf_template = "/etc/containerd/config-cni.template"
@@ -47,7 +47,7 @@ contents: |
             test_int = 1
             test_intstr = "1"
             test_str = "test"
-path: /etc/containerd/config.toml
+path: /etc/containerd/config-kops.toml
 type: file
 ---
 contents: |2
@@ -354,7 +354,7 @@ definition: |
   EnvironmentFile=/etc/sysconfig/containerd
   EnvironmentFile=/etc/environment
   ExecStartPre=-/sbin/modprobe overlay
-  ExecStart=/usr/bin/containerd -c /etc/containerd/config.toml "$CONTAINERD_OPTS"
+  ExecStart=/usr/bin/containerd -c /etc/containerd/config-kops.toml "$CONTAINERD_OPTS"
   Type=notify
   Delegate=yes
   KillMode=process

@@ -21,6 +21,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func SetString(target interface{}, targetPath string, newValue string) error {
