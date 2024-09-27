@@ -147,7 +147,7 @@ jobs:
           mv kops-linux-amd64/nodeup kops-linux-amd64/nodeup-linux-amd64
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           fail_on_unmatched_files: true
           files: |
