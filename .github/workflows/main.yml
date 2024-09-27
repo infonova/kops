@@ -26,7 +26,7 @@ jobs:
       src: ${{ steps.filter.outputs.src }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
 
     - name: Detect changes
       uses: dorny/paths-filter@v2
@@ -41,21 +41,20 @@ jobs:
     if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-20.04
     steps:
-      - name: Set up go
-        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753
-        with:
-          go-version: "1.20.6"
-
       - name: Checkout full
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           git clone ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} -b ${GITHUB_REF#refs/tags/} ${{ env.GOPATH }}/src/k8s.io/kops
 
       - name: Checkout shallow
-        uses: actions/checkout@v2
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         if: startsWith(github.ref, 'refs/tags/') == false
         with:
           path: ${{ env.GOPATH }}/src/k8s.io/kops
+      - name: Set up go
+        uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+        with:
+          go-version-file: '${{ env.GOPATH }}/src/k8s.io/kops/go.mod'
 
       - name: Make all examples test
         working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
@@ -76,21 +75,21 @@ jobs:
     if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: macos-latest
     steps:
-      - name: Set up go
-        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753
-        with:
-          go-version: "1.20.6"
-
       - name: Checkout full
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           git clone ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} -b ${GITHUB_REF#refs/tags/} ${{ env.GOPATH }}/src/k8s.io/kops
 
       - name: Checkout shallow
-        uses: actions/checkout@v2
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         if: startsWith(github.ref, 'refs/tags/') == false
         with:
           path: ${{ env.GOPATH }}/src/k8s.io/kops
+
+      - name: Set up go
+        uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+        with:
+          go-version-file: '${{ env.GOPATH }}/src/k8s.io/kops/go.mod'
 
       - name: Make kops examples test
         working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
@@ -111,15 +110,15 @@ jobs:
     if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-20.04
     steps:
-      - name: Set up go
-        uses: actions/setup-go@fac708d6674e30b6ba41289acaab6d4b75aa0753
-        with:
-          go-version: "1.20.6"
-
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           path: ${{ env.GOPATH }}/src/k8s.io/kops
+
+      - name: Set up go
+        uses: actions/setup-go@cdcb36043654635271a94b9a6d1392de5bb323a7
+        with:
+          go-version-file: '${{ env.GOPATH }}/src/k8s.io/kops/go.mod'
 
       - name: Make quick-ci
         working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
