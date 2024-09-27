@@ -136,7 +136,7 @@ jobs:
       - verify
     steps:
       - name: Download all binary artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
 
       - name: Rename kops binary artifacts
         run: |
