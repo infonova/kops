@@ -89,6 +89,9 @@ type CoreUpdateClusterOptions struct {
 	// GetAssets is whether this is invoked from the CmdGetAssets.
 	GetAssets bool
 
+	// GetIGAssets is whether this is called to obtain the IG assets as well
+	GetIGAssets bool
+
 	ClusterName string
 
 	// InstanceGroups is the list of instance groups to update;
@@ -371,6 +374,7 @@ func RunUpdateCluster(ctx context.Context, f *util.Factory, out io.Writer, c *Up
 		TargetName:                 targetName,
 		LifecycleOverrides:         lifecycleOverrideMap,
 		GetAssets:                  c.GetAssets,
+		GetIGAssets:                c.GetIGAssets,
 		DeletionProcessing:         deletionProcessing,
 		ControlPlaneRunningVersion: minControlPlaneRunningVersion,
 	}

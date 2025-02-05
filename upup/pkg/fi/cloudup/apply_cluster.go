@@ -30,6 +30,7 @@ import (
 	"k8s.io/klog/v2"
 	kopsbase "k8s.io/kops"
 	"k8s.io/kops/pkg/apis/kops"
+	kopsmodel "k8s.io/kops/pkg/apis/kops/model"
 	"k8s.io/kops/pkg/apis/kops/registry"
 	"k8s.io/kops/pkg/apis/kops/util"
 	"k8s.io/kops/pkg/apis/kops/validation"
@@ -125,6 +126,9 @@ type ApplyClusterCmd struct {
 
 	// GetAssets is whether this is called just to obtain the list of assets.
 	GetAssets bool
+
+	// GetIGAssets is whether this is called to obtain the IG assets as well
+	GetIGAssets bool
 
 	// TaskMap is the map of tasks that we built (output)
 	TaskMap map[string]fi.CloudupTask
@@ -826,6 +830,33 @@ func (c *ApplyClusterCmd) Run(ctx context.Context) (*ApplyResults, error) {
 	err = target.Finish(c.TaskMap) // This will finish the apply, and print the changes
 	if err != nil {
 		return nil, fmt.Errorf("error closing target: %v", err)
+	}
+
+	// TODO(sprietl):
+	//   include IG assets as well if wanted
+	//   maybe make this a parameter of "kops get assets"
+	if c.GetIGAssets {
+		ig := allInstanceGroups[0]
+		igModel, err := kopsmodel.ForInstanceGroup(cluster, ig)
+		if err != nil {
+			return nil, fmt.Errorf("building instance group model: %w", err)
+		}
+
+		// if !hasAPIServer && n.assetBuilder.KubeletSupportedVersion != "" {
+		// 	// Set kubernetes version to avoid spurious rolling-update
+		// 	config.KubernetesVersion = n.assetBuilder.KubeletSupportedVersion
+
+		// 	// TODO: Rename KubernetesVersion to ControlPlaneVersion
+
+		// 	if err := igModel.ForceKubernetesVersion(n.assetBuilder.KubeletSupportedVersion); err != nil {
+		// 		return nil, nil, err
+		// 	}
+		// }
+
+		_, err = nodemodel.BuildKubernetesFileAssets(igModel, assetBuilder)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build k8s file assets: %w", err)
+		}
 	}
 
 	applyResults := &ApplyResults{
