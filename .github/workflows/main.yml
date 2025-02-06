@@ -1,9 +1,16 @@
----
 name: CI
 
-'on':
-  - push
-  - pull_request
+on:
+  push:
+    tags:
+      - "*"
+    branches:
+      - "master*"
+      - "release*"
+  pull_request:
+    branches:
+      - "master*"
+      - "release*"
 
 env:
   GOPROXY: https://proxy.golang.org
@@ -13,61 +20,69 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+    - name: Detect changes
+      uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          src:
+            - '!.github/**'
+
   build-linux-amd64:
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Checkout full
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          git clone ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} -b ${GITHUB_REF#refs/tags/} ${{ env.GOPATH }}/src/k8s.io/kops
+
+      - name: Checkout shallow
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        if: startsWith(github.ref, 'refs/tags/') == false
         with:
           path: ${{ env.GOPATH }}/src/k8s.io/kops
-
       - name: Set up go
         uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed
         with:
           go-version-file: '${{ env.GOPATH }}/src/k8s.io/kops/go.mod'
 
-      - name: make all examples test
+      - name: Make all examples test
         working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
         run: |
           make all examples test
 
+      - name: Upload Linux binaries
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: kops-linux-amd64
+          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/linux/amd64/*
+          if-no-files-found: error
+          retention-days: 1
+
   build-macos-amd64:
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      with:
-        path: ${{ env.GOPATH }}/src/k8s.io/kops
+      - name: Checkout full
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          git clone ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY} -b ${GITHUB_REF#refs/tags/} ${{ env.GOPATH }}/src/k8s.io/kops
 
-    - name: Set up go
-      uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed
-      with:
-        go-version-file: '${{ env.GOPATH }}/src/k8s.io/kops/go.mod'
-
-    - name: make kops examples test
-      working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
-      run: |
-        make kops examples test
-
-  build-windows-amd64:
-    runs-on: windows-2022
-    steps:
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-      with:
-        path: ${{ env.GOPATH }}/src/k8s.io/kops
-
-    - name: Set up go
-      uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed
-      with:
-        go-version-file: '${{ env.GOPATH }}/src/k8s.io/kops/go.mod'
-
-    - name: make kops examples test
-      working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
-      run: |
-        make kops examples test-windows
-
-  verify:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Checkout shallow
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        if: startsWith(github.ref, 'refs/tags/') == false
         with:
           path: ${{ env.GOPATH }}/src/k8s.io/kops
 
@@ -76,7 +91,86 @@ jobs:
         with:
           go-version-file: '${{ env.GOPATH }}/src/k8s.io/kops/go.mod'
 
-      - name: make quick-ci
+      # Build and upload arm64
+      - name: Make kops examples test (arm64)
+        working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
+        run: |
+          GOARCH=arm64 make kops examples test
+
+      - name: Upload kops MacOS binary (arm64)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: kops-darwin-arm64
+          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/darwin/arm64/kops
+          if-no-files-found: error
+          retention-days: 1
+
+      # Build and upload amd64
+      - name: Make kops examples test (amd64)
+        working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
+        run: |
+          GOARCH=amd64 make kops
+
+      - name: Upload kops MacOS binary (amd64)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: kops-darwin-amd64
+          path: ${{ env.GOPATH }}/src/k8s.io/kops/.build/dist/darwin/amd64/kops
+          if-no-files-found: error
+          retention-days: 1
+
+  verify:
+    needs: changes
+    if: ${{ needs.changes.outputs.src == 'true' || startsWith(github.ref, 'refs/tags/') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          path: ${{ env.GOPATH }}/src/k8s.io/kops
+
+      - name: Set up go
+        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed
+        with:
+          go-version-file: '${{ env.GOPATH }}/src/k8s.io/kops/go.mod'
+
+      - name: Make quick-ci
         working-directory: ${{ env.GOPATH }}/src/k8s.io/kops
         run: |
           make quick-ci
+
+  release:
+    runs-on: ubuntu-20.04
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    needs:
+      - build-linux-amd64
+      - build-macos-amd64
+      - verify
+    steps:
+      - name: Download all binary artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Rename kops binary artifacts
+        run: |
+          mv kops-darwin-amd64/kops kops-darwin-amd64/kops-darwin-amd64
+          mv kops-darwin-arm64/kops kops-darwin-arm64/kops-darwin-arm64
+          mv kops-linux-amd64/kops kops-linux-amd64/kops-linux-amd64
+          mv kops-linux-amd64/channels kops-linux-amd64/channels-linux-amd64
+          mv kops-linux-amd64/protokube kops-linux-amd64/protokube-linux-amd64
+          mv kops-linux-amd64/nodeup kops-linux-amd64/nodeup-linux-amd64
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          fail_on_unmatched_files: true
+          files: |
+            kops-darwin-amd64/kops-darwin-amd64
+            kops-darwin-arm64/kops-darwin-arm64
+            kops-linux-amd64/kops-linux-amd64
+            kops-linux-amd64/channels-linux-amd64
+            kops-linux-amd64/protokube-linux-amd64
+            kops-linux-amd64/nodeup-linux-amd64
