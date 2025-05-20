@@ -30,8 +30,9 @@ kops get assets [CLUSTER] [flags]
 ### Options
 
 ```
-      --copy   copy assets to local repository
-  -h, --help   help for assets
+      --copy                copy assets to local repository
+  -h, --help                help for assets
+      --include-ig-assets   include assets of the instance groups
 ```
 
 ### Options inherited from parent commands

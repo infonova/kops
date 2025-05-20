@@ -49,7 +49,7 @@ var (
 	kops get assets
 
 	# Copy assets to the local repositories configured in the cluster spec.
-	kops get assets --copy 
+	kops get assets --copy
 	`))
 
 	getAssetsShort = i18n.T(`Display assets for cluster.`)
@@ -57,7 +57,8 @@ var (
 
 type GetAssetsOptions struct {
 	*GetOptions
-	Copy bool
+	Copy            bool
+	IncludeIGAssets bool
 }
 
 type Image struct {
@@ -96,6 +97,7 @@ func NewCmdGetAssets(f *util.Factory, out io.Writer, getOptions *GetOptions) *co
 	}
 
 	cmd.Flags().BoolVar(&options.Copy, "copy", options.Copy, "copy assets to local repository")
+	cmd.Flags().BoolVar(&options.IncludeIGAssets, "include-ig-assets", options.IncludeIGAssets, "include assets of the instance groups")
 
 	return cmd
 }
@@ -105,6 +107,7 @@ func RunGetAssets(ctx context.Context, f *util.Factory, out io.Writer, options *
 		CoreUpdateClusterOptions: CoreUpdateClusterOptions{
 			Target:      cloudup.TargetDryRun,
 			GetAssets:   true,
+			GetIGAssets: options.IncludeIGAssets,
 			ClusterName: options.ClusterName,
 		},
 	})
